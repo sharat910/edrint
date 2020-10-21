@@ -1,0 +1,53 @@
+packets:
+  source: "pcap" # interface or pcap
+  pcap_path: "./pcaps/wow_test.pcapng"
+  interface: "eth0"
+  direction:
+    mode: "ip" # mac or ip
+    client_macs:
+      - ""
+    client_ips:
+      - "10.42.0.0/16"
+
+processors:
+  flow:
+    enabled: true
+    timeout: 2 #minutes
+    capacity: 1000
+  dump:
+    enabled: true
+    path: "./files/dumps/dump.json.log"
+    topics:
+      - "classification"
+      - "flow.attach_telemetry"
+      - "telemetry.tcp_retransmit_simple"
+      - "telemetry.flowpulse"
+  dns:
+    enabled: true
+  sni:
+    enabled: true
+
+  header_classifier:
+    enabled: true
+    classes:
+      wow:
+        client_ip: '*'
+        server_ip: '*'
+        client_port: '*'
+        server_port: '3724' # syntax: 'n': p == n, 'm-n': m<=p<=n
+        protocol: '6'
+
+  telemetry_manager:
+    enabled: true
+    classes:
+      wow: ['tcp_retransmit_simple', 'flowpulse']
+
+
+telemetry:
+  flowpulse:
+    enabled: true
+    interval_ms: 300000
+  tcp_retransmit_simple:
+    enabled: true
+    interval_ms: 60000
+
