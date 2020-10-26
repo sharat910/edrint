@@ -22,7 +22,9 @@ type TCPRetransmitSimple struct {
 	RetransmitsUp   []int
 	RetransmitsDown []int
 
-	CurIdx int
+	CurIdx           int
+	ProcessedPackets uint
+	ProcessingTime   time.Duration
 }
 
 type EventTCPRetransmitSimple struct {
@@ -51,6 +53,11 @@ func (tsl *TCPRetransmitSimple) Name() string {
 }
 
 func (tsl *TCPRetransmitSimple) OnFlowPacket(p packets.Packet) {
+	defer func(start time.Time) {
+		tsl.ProcessedPackets++
+		tsl.ProcessingTime += time.Since(start)
+	}(time.Now())
+
 	if !tsl.firstPacketSeen {
 		tsl.firstPacketTS = p.Timestamp
 		tsl.firstPacketSeen = true
@@ -73,7 +80,8 @@ func (tsl *TCPRetransmitSimple) ExtendUntil(idx int) {
 }
 
 func (tsl *TCPRetransmitSimple) Teardown() {
-	log.Debug().Str("telemetry", tsl.Name()).Msg("teardown")
+	log.Debug().Str("processing_time", tsl.ProcessingTime.String()).Uint("packets", tsl.ProcessedPackets).
+		Str("telemetry", tsl.Name()).Str("header", fmt.Sprint(tsl.header)).Msg("teardown")
 	tsl.Publish(eventbus.Topic("telemetry."+tsl.Name()), EventTCPRetransmitSimple{
 		FirstPacketTS:   tsl.firstPacketTS,
 		LastPacketTS:    tsl.lastPacketTS,
@@ -115,4 +123,160 @@ func (tsl *TCPRetransmitSimple) IncRetransmitCounters(p packets.Packet, idx int)
 			tsl.RetransmitsDown[idx]++
 		}
 	}
+}
+
+type RTTEntry struct {
+	Timestamp  time.Time
+	PayloadLen uint32
+	Ignore     bool
+}
+
+type TCPRTT struct {
+	BaseFlowTelemetry
+	firstPacketSeen bool
+	firstPacketTS   time.Time
+	lastPacketTS    time.Time
+	m               map[uint32]*RTTEntry
+	nextExpSeq      uint32
+	OOOLeft         uint32
+	OOORight        uint32
+	lossSeen        bool
+
+	RelTimestampMS []uint
+	RTTMS          []uint
+
+	DC RTTDebugCounters
+}
+
+type RTTDebugCounters struct {
+	ProcessingTime     time.Duration
+	EntriesInserted    uint
+	RTTSamplesProduced uint
+	AcksIgnored        uint
+	StaleEntries       uint
+	ProcessedPackets   uint
+}
+
+func NewTCPRTT() *TCPRTT {
+	return &TCPRTT{m: make(map[uint32]*RTTEntry)}
+}
+
+func (tr *TCPRTT) OnFlowPacket(p packets.Packet) {
+	defer func(start time.Time) {
+		tr.DC.ProcessedPackets++
+		tr.DC.ProcessingTime += time.Since(start)
+	}(time.Now())
+
+	if p.IsOutbound {
+		if len(p.Payload) == 0 {
+			if p.TCPLayer.SYN {
+				log.Debug().Time("t", p.Timestamp).Uint32("seq", p.TCPLayer.Seq).Str("header", fmt.Sprint(p.GetKey())).Msg("syn")
+				eack := p.TCPLayer.Seq + 1
+				tr.m[eack] = &RTTEntry{Timestamp: p.Timestamp}
+				tr.nextExpSeq = eack
+				tr.firstPacketSeen = true
+			}
+			return
+		}
+		//log.Debug().Time("t", p.Timestamp).Uint32("seq", p.TCPLayer.Seq).Str("header", fmt.Sprint(p.GetKey())).Msg("upload with data")
+		if !tr.firstPacketSeen {
+			tr.nextExpSeq = p.TCPLayer.Seq
+			tr.firstPacketTS = p.Timestamp
+			tr.firstPacketSeen = true
+		}
+		tr.lastPacketTS = p.Timestamp
+
+		pLen := uint32(len(p.Payload))
+		eack := p.TCPLayer.Seq + pLen
+		re, exists := tr.m[eack]
+		if exists {
+			re.Ignore = true
+			return
+		}
+		re = &RTTEntry{Timestamp: p.Timestamp, PayloadLen: pLen}
+		tr.m[eack] = re
+		tr.DC.EntriesInserted++
+
+		// Received packet is expected
+		if p.TCPLayer.Seq == tr.nextExpSeq {
+
+			tr.nextExpSeq = eack
+
+			if tr.lossSeen {
+				re.Ignore = true
+				if tr.nextExpSeq == tr.OOOLeft {
+					tr.nextExpSeq = tr.OOORight
+					tr.lossSeen = false
+				}
+			}
+
+		} else if p.TCPLayer.Seq > tr.nextExpSeq { // missing packet (has to be retransmitted) hence ignore current packet
+			re.Ignore = true
+			if !tr.lossSeen {
+				tr.OOOLeft = p.TCPLayer.Seq
+				tr.OOORight = eack
+				tr.lossSeen = true
+			} else {
+				if p.TCPLayer.Seq < tr.OOOLeft {
+					tr.OOOLeft = p.TCPLayer.Seq
+				}
+
+				if p.TCPLayer.Seq >= tr.OOORight {
+					tr.OOORight = eack
+				}
+			}
+		} else { // re-ordered packet
+			re.Ignore = true
+		}
+		//log.Debug().Time("t", p.Timestamp).Uint32("seq", p.TCPLayer.Seq).Str("header", fmt.Sprint(p.GetKey())).
+		//	Uint32("eack", eack).Str("rttentry", fmt.Sprint(re)).Msg("upload with data")
+
+	} else { // Downstream packet
+		if !p.TCPLayer.ACK { // If not acking -- don't care
+			return
+		}
+
+		re, exists := tr.m[p.TCPLayer.Ack]
+		if !exists {
+			return
+		}
+
+		if re.Ignore {
+			//log.Debug().Time("t", p.Timestamp).Str("header", fmt.Sprint(p.GetKey())).
+			//	Uint32("ack", p.TCPLayer.Ack).Dur("rtt", p.Timestamp.Sub(re.Timestamp)).
+			//	Msg("ignoring rtt_sample")
+			tr.DC.AcksIgnored++
+			return
+		}
+
+		tr.AddRTTSample(p, re)
+		delete(tr.m, p.TCPLayer.Ack)
+	}
+}
+
+func (tr *TCPRTT) AddRTTSample(p packets.Packet, re *RTTEntry) {
+	//log.Debug().Time("t", p.Timestamp).Str("header", fmt.Sprint(p.GetKey())).Uint32("ack", p.TCPLayer.Ack).
+	//	Dur("rtt", p.Timestamp.Sub(re.Timestamp)).Msg("rtt_sample")
+
+	tr.RTTMS = append(tr.RTTMS, uint(p.Timestamp.Sub(re.Timestamp)/time.Millisecond))
+	tr.RelTimestampMS = append(tr.RelTimestampMS, uint(p.Timestamp.Sub(tr.firstPacketTS)/time.Millisecond))
+	tr.DC.RTTSamplesProduced++
+}
+
+func (tr *TCPRTT) Teardown() {
+	tr.DC.StaleEntries = uint(len(tr.m))
+	log.Debug().Str("stats", fmt.Sprintf("%+v", tr.DC)).Str("telemetry", "tcp_rtt").Msg("teardown")
+	tr.Publish("telemetry.tcp_rtt", struct {
+		FirstPacketTS  time.Time
+		LastPacketTS   time.Time
+		Header         packets.FiveTuple
+		RelTimestampMS []uint
+		RTTMS          []uint
+	}{
+		tr.firstPacketTS,
+		tr.lastPacketTS,
+		tr.header,
+		tr.RelTimestampMS,
+		tr.RTTMS,
+	})
 }

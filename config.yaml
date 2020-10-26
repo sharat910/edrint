@@ -22,6 +22,7 @@ processors:
       - "flow.attach_telemetry"
       - "telemetry.tcp_retransmit_simple"
       - "telemetry.flowpulse"
+      - "telemetry.tcp_rtt"
   dns:
     enabled: true
   sni:
@@ -33,21 +34,26 @@ processors:
       wow:
         client_ip: '*'
         server_ip: '*'
-        client_port: '*'
+        client_port: '52721'
         server_port: '3724' # syntax: 'n': p == n, 'm-n': m<=p<=n
+        protocol: '6'
+      test:
+        client_ip: '*'
+        server_ip: '*'
+        client_port: '55800'
+        server_port: '443'
         protocol: '6'
 
   telemetry_manager:
     enabled: true
     classes:
-      wow: ['tcp_retransmit_simple', 'flowpulse']
+      wow: ['tcp_retransmit_simple', 'flowpulse', 'tcp_rtt']
+#      test: ['tcp_rtt']
 
 
 telemetry:
   flowpulse:
-    enabled: true
     interval_ms: 300000
   tcp_retransmit_simple:
-    enabled: true
     interval_ms: 60000
 

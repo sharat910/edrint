@@ -37,6 +37,8 @@ func GetByName(name string, header packets.FiveTuple, eb *eventbus.EventBus) Tel
 		t = NewTCPRetransmitSimple()
 	case "flowpulse":
 		t = NewFlowPulse()
+	case "tcp_rtt":
+		t = NewTCPRTT()
 	default:
 		log.Fatal().Str("telemetry", name).Msg("unknown telemetry requested")
 	}

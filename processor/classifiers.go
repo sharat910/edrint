@@ -167,6 +167,7 @@ func (hc *HeaderClassifier) EventHandler(topic eventbus.Topic, event interface{}
 	fc := event.(FlowCreatedEvent)
 	for class, rule := range hc.Rules {
 		if rule.Match(fc.Header) {
+			log.Debug().Str("header", fmt.Sprint(fc.Header)).Str("class", class).Msg("classification")
 			hc.Publish("classification", EventClassification{
 				Header: fc.Header,
 				Class:  class,
