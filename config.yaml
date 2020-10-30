@@ -1,13 +1,14 @@
 packets:
   source: "pcap" # interface or pcap
-  pcap_path: "./pcaps/wow_test.pcapng"
+  pcap_path: "./files/pcaps/wow_test.pcapng"
   interface: "eth0"
   direction:
     mode: "ip" # mac or ip
     client_macs:
       - ""
     client_ips:
-      - "10.42.0.0/16"
+      - "10.0.1.2/32"
+      - "10.0.0.2/32"
 
 processors:
   flow:
@@ -18,6 +19,7 @@ processors:
     enabled: true
     path: "./files/dumps/dump.json.log"
     topics:
+      - "packet_parser.metadata"
       - "classification"
       - "flow.attach_telemetry"
       - "telemetry.tcp_retransmit_simple"
@@ -31,29 +33,29 @@ processors:
   header_classifier:
     enabled: true
     classes:
-      wow:
-        client_ip: '*'
-        server_ip: '*'
-        client_port: '52721'
-        server_port: '3724' # syntax: 'n': p == n, 'm-n': m<=p<=n
-        protocol: '6'
+#      wow:
+#        client_ip: '*'
+#        server_ip: '*'
+#        client_port: '52721'
+#        server_port: '3724' # syntax: 'n': p == n, 'm-n': m<=p<=n
+#        protocol: '6'
       test:
-        client_ip: '*'
-        server_ip: '*'
-        client_port: '55800'
-        server_port: '443'
+        client_ip: '10.0.1.2/32'
+        server_ip: '10.0.1.1/32'
+        client_port: '*'
+        server_port: '*'
         protocol: '6'
 
   telemetry_manager:
     enabled: true
     classes:
-      wow: ['tcp_retransmit_simple', 'flowpulse', 'tcp_rtt']
-#      test: ['tcp_rtt']
+#      wow: ['tcp_retransmit_simple', 'flowpulse', 'tcp_rtt']
+      test: ['tcp_rtt', 'flowpulse', 'tcp_retransmit_simple']
 
 
 telemetry:
   flowpulse:
-    interval_ms: 300000
+    interval_ms: 1000
   tcp_retransmit_simple:
-    interval_ms: 60000
+    interval_ms: 1000
 

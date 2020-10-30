@@ -47,7 +47,11 @@ func BuildRule(config map[string]string) Rule {
 
 	clientIP, exists := config["client_ip"]
 	if exists && clientIP != "*" {
-		_, subnet, _ := net.ParseCIDR(clientIP)
+		fmt.Println(net.ParseCIDR(clientIP))
+		_, subnet, err := net.ParseCIDR(clientIP)
+		if err != nil {
+			log.Fatal().Err(err).Str("client_ip_cidr", clientIP).Msg("unable to parse CIDR")
+		}
 		r.ClientSubnet = *subnet
 	}
 

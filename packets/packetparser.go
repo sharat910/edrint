@@ -43,7 +43,7 @@ func (p Packet) GetKey() FiveTuple {
 
 func PacketParser(eventbus *eventbus.EventBus) {
 
-	handle := GetHandle()
+	handle, source := GetHandle()
 	dirMac := viper.GetString("packets.direction.mode") == "mac"
 	var (
 		// Will reuse these for each packet
@@ -77,6 +77,7 @@ func PacketParser(eventbus *eventbus.EventBus) {
 
 	pktCount := 0
 	log.Info().Msg("packet processor started")
+	var firstPacketTS, lastPacketTS time.Time
 	for packet := range packetSource.Packets() {
 		pktCount++
 		var p Packet
@@ -93,7 +94,11 @@ func PacketParser(eventbus *eventbus.EventBus) {
 					Msg("app layer len difference!")
 			}
 		}
-
+		// book keeping
+		if pktCount == 1 {
+			firstPacketTS = p.Timestamp
+		}
+		lastPacketTS = p.Timestamp
 		var foundLayerTypes []gopacket.LayerType
 		_ = parser.DecodeLayers(packet.Data(), &foundLayerTypes)
 		for _, layerType := range foundLayerTypes {
@@ -146,6 +151,12 @@ func PacketParser(eventbus *eventbus.EventBus) {
 		}
 	}
 	log.Info().Int("packet_count", pktCount).Msg("packet processing completed")
+	eventbus.Publish("packet_parser.metadata", struct {
+		NPackets      int       `json:"n_packets"`
+		FirstPacketTS time.Time `json:"first_packet_ts"`
+		LastPacketTS  time.Time `json:"last_packet_ts"`
+		Source        string
+	}{pktCount, firstPacketTS, lastPacketTS, source})
 }
 
 func GetClientSubnets() []*net.IPNet {
@@ -160,7 +171,7 @@ func GetClientSubnets() []*net.IPNet {
 	return clientSubnets
 }
 
-func GetHandle() *pcap.Handle {
+func GetHandle() (*pcap.Handle, string) {
 	var handle *pcap.Handle
 	source := viper.GetString("packets.source")
 	if source == "pcap" {
@@ -171,6 +182,7 @@ func GetHandle() *pcap.Handle {
 			log.Fatal().Err(err).Msg("unable to open pcap")
 		}
 		log.Info().Str("packet_source", source).Str("pcap_path", pcapPath).Msg("handle created")
+		source = pcapPath
 	} else if source == "interface" {
 		var err error
 		iface := viper.GetString("packets.interface")
@@ -179,6 +191,7 @@ func GetHandle() *pcap.Handle {
 			log.Fatal().Err(err).Msg("unable to open pcap")
 		}
 		log.Info().Str("packet_source", source).Str("interface", iface).Msg("handle created")
+		source = iface
 	}
-	return handle
+	return handle, source
 }

@@ -174,6 +174,7 @@ func (tr *TCPRTT) OnFlowPacket(p packets.Packet) {
 				eack := p.TCPLayer.Seq + 1
 				tr.m[eack] = &RTTEntry{Timestamp: p.Timestamp}
 				tr.nextExpSeq = eack
+				tr.firstPacketTS = p.Timestamp
 				tr.firstPacketSeen = true
 			}
 			return
