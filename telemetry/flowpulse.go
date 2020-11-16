@@ -1,12 +1,12 @@
 package telemetry
 
 import (
-	"fmt"
 	"time"
 
+	"github.com/sharat910/edrint/common"
+	"github.com/sharat910/edrint/events"
+
 	"github.com/rs/zerolog/log"
-	"github.com/sharat910/edrint/packets"
-	"github.com/spf13/viper"
 )
 
 type FlowPulse struct {
@@ -23,23 +23,28 @@ type FlowPulse struct {
 	curIdx          int
 }
 
-func NewFlowPulse() *FlowPulse {
-	var fp FlowPulse
-	interval := viper.GetInt(fmt.Sprintf("telemetry.%s.interval_ms", fp.Name()))
-	if interval == 0 {
+func (f *FlowPulse) Pubs() []events.Topic {
+	return []events.Topic{events.TELEMETRY_FLOWPULSE}
+}
+
+func NewFlowPulse(intervalMS int) TeleGen {
+	if intervalMS == 0 {
 		log.Warn().Msg("tcp_retransmit_simple unable to read interval. Setting default: 1sec")
-		interval = 1000
+		intervalMS = 1000
 	}
-	log.Debug().Str("telemetry", fp.Name()).Int("interval", interval).Msg("config")
-	fp.intervalMS = interval
-	return &fp
+	return func() Telemetry {
+		var fp FlowPulse
+		fp.intervalMS = intervalMS
+		log.Debug().Str("telemetry", fp.Name()).Int("interval_ms", intervalMS).Msg("config")
+		return &fp
+	}
 }
 
 func (f *FlowPulse) Name() string {
 	return "flowpulse"
 }
 
-func (f *FlowPulse) OnFlowPacket(p packets.Packet) {
+func (f *FlowPulse) OnFlowPacket(p common.Packet) {
 	if !f.firstPacketSeen {
 		f.firstPacketTS = p.Timestamp
 		f.firstPacketSeen = true
@@ -67,19 +72,28 @@ func (f *FlowPulse) ExtendUntil(idx int) {
 
 func (f *FlowPulse) Teardown() {
 	log.Debug().Str("telemetry", f.Name()).Msg("teardown")
-	f.Publish("telemetry.flowpulse", DataFlowPulse{
-		Header:        f.header,
-		IntervalMS:    f.intervalMS,
-		FirstPacketTS: f.firstPacketTS,
-		LastPacketTS:  f.lastPacketTS,
-		DownBytes:     f.downBytes,
-		UpBytes:       f.upBytes,
-		DownPackets:   f.downPackets,
-		UpPackets:     f.upPackets,
+	f.Publish(events.TELEMETRY_FLOWPULSE, struct {
+		Header        common.FiveTuple
+		IntervalMS    int
+		FirstPacketTS time.Time
+		LastPacketTS  time.Time
+		DownBytes     []uint
+		UpBytes       []uint
+		DownPackets   []uint
+		UpPackets     []uint
+	}{
+		f.header,
+		f.intervalMS,
+		f.firstPacketTS,
+		f.lastPacketTS,
+		f.downBytes,
+		f.upBytes,
+		f.downPackets,
+		f.upPackets,
 	})
 }
 
-func (f *FlowPulse) Update(p packets.Packet, idx int) {
+func (f *FlowPulse) Update(p common.Packet, idx int) {
 	if p.IsOutbound {
 		f.upPackets[idx]++
 		f.upBytes[idx] += p.TotalLen
@@ -87,15 +101,4 @@ func (f *FlowPulse) Update(p packets.Packet, idx int) {
 		f.downPackets[idx]++
 		f.downBytes[idx] += p.TotalLen
 	}
-}
-
-type DataFlowPulse struct {
-	Header        packets.FiveTuple
-	IntervalMS    int
-	FirstPacketTS time.Time
-	LastPacketTS  time.Time
-	DownBytes     []uint
-	UpBytes       []uint
-	DownPackets   []uint
-	UpPackets     []uint
 }

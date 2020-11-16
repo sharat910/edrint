@@ -5,15 +5,14 @@ import (
 	"time"
 
 	"github.com/rs/zerolog/log"
-	"github.com/sharat910/edrint/eventbus"
-	"github.com/sharat910/edrint/packets"
+	"github.com/sharat910/edrint/common"
+	"github.com/sharat910/edrint/events"
 	"github.com/sharat910/edrint/telemetry"
-	"github.com/spf13/viper"
 )
 
 type FlowProcessor struct {
 	BasePublisher
-	m       map[packets.FiveTuple]*Entry
+	m       map[common.FiveTuple]*Entry
 	latest  *Entry
 	oldest  *Entry
 	Timeout time.Duration
@@ -30,11 +29,10 @@ func (f *FlowProcessor) Teardown() {
 	log.Info().Str("proc", f.Name()).Int("entry_count", len(f.m)).Msg("teardown")
 }
 
-func NewFlowProcessor() *FlowProcessor {
-	timeoutMin := viper.GetInt("processors.flow.timeout")
+func NewFlowProcessor(timeoutMin int) *FlowProcessor {
 	log.Debug().Str("proc", "flow").Int("timeout_min", timeoutMin).Msg("config")
 	return &FlowProcessor{
-		m:       make(map[packets.FiveTuple]*Entry, 1000),
+		m:       make(map[common.FiveTuple]*Entry, 1000),
 		Timeout: time.Duration(timeoutMin) * time.Minute,
 	}
 }
@@ -43,18 +41,18 @@ func (f *FlowProcessor) Name() string {
 	return "flow"
 }
 
-func (f *FlowProcessor) Subs() []eventbus.Topic {
-	return []eventbus.Topic{"packet", "flow.attach_telemetry"}
+func (f *FlowProcessor) Subs() []events.Topic {
+	return []events.Topic{events.PACKET, events.FLOW_ATTACH_TELEMETRY}
 }
 
-func (f *FlowProcessor) Pubs() []eventbus.Topic {
-	return []eventbus.Topic{"flow.created", "flow.expired"}
+func (f *FlowProcessor) Pubs() []events.Topic {
+	return []events.Topic{events.FLOW_CREATED, events.FLOW_EXPIRED}
 }
 
-func (f *FlowProcessor) EventHandler(topic eventbus.Topic, event interface{}) {
+func (f *FlowProcessor) EventHandler(topic events.Topic, event interface{}) {
 	switch topic {
-	case "packet":
-		p := event.(packets.Packet)
+	case events.PACKET:
+		p := event.(common.Packet)
 		k := p.GetKey()
 		entry, exists := f.m[k]
 		if !exists {
@@ -63,7 +61,7 @@ func (f *FlowProcessor) EventHandler(topic eventbus.Topic, event interface{}) {
 			f.Update(p, entry)
 		}
 		f.expireEntries(p.Timestamp)
-	case "flow.attach_telemetry":
+	case events.FLOW_ATTACH_TELEMETRY:
 		at := event.(EventAttachPerFlowTelemetry)
 		entry, exists := f.m[at.Header]
 		if !exists {
@@ -87,14 +85,14 @@ func (f *FlowProcessor) EventHandler(topic eventbus.Topic, event interface{}) {
 
 type FlowCreatedEvent struct {
 	CreatedTS time.Time
-	Header    packets.FiveTuple
+	Header    common.FiveTuple
 }
 
 type FlowExpiredEvent struct {
 	FirstPacketTS time.Time
 	LastPacketTS  time.Time
 	ExpiredTS     time.Time
-	Header        packets.FiveTuple
+	Header        common.FiveTuple
 	DownBytes     uint
 	UpBytes       uint
 	DownPackets   uint
@@ -102,7 +100,7 @@ type FlowExpiredEvent struct {
 }
 
 type Entry struct {
-	Header    packets.FiveTuple
+	Header    common.FiveTuple
 	CreatedTS time.Time
 	UpdatedTS time.Time
 
@@ -118,7 +116,7 @@ type Entry struct {
 	TFS map[string]telemetry.Telemetry
 }
 
-func (entry *Entry) UpdateOnPacket(p packets.Packet) {
+func (entry *Entry) UpdateOnPacket(p common.Packet) {
 	entry.UpdatedTS = p.Timestamp
 	if p.IsOutbound {
 		entry.UpPackets++
@@ -133,7 +131,7 @@ func (entry *Entry) UpdateOnPacket(p packets.Packet) {
 	}
 }
 
-func (f *FlowProcessor) Insert(p packets.Packet) {
+func (f *FlowProcessor) Insert(p common.Packet) {
 	// Create new entry
 	prevPtr := f.latest
 	key := p.GetKey()
@@ -152,7 +150,7 @@ func (f *FlowProcessor) Insert(p packets.Packet) {
 
 	// Publish the event -- may have downstream deps and
 	// can add telemetry functions as a result
-	f.Publish("flow.created", FlowCreatedEvent{
+	f.Publish(events.FLOW_CREATED, FlowCreatedEvent{
 		CreatedTS: p.Timestamp,
 		Header:    key,
 	})
@@ -178,7 +176,7 @@ func (f *FlowProcessor) MakeEntrylatest(entry *Entry) {
 	}
 }
 
-func (f *FlowProcessor) Update(pd packets.Packet, entry *Entry) {
+func (f *FlowProcessor) Update(pd common.Packet, entry *Entry) {
 	entry.UpdateOnPacket(pd)
 	f.getEntryToTop(entry)
 }
@@ -236,7 +234,7 @@ func (f *FlowProcessor) BeforeExpire(entry *Entry, now time.Time) {
 		tf.Teardown()
 	}
 
-	f.Publish("flow.expired", FlowExpiredEvent{
+	f.Publish(events.FLOW_EXPIRED, FlowExpiredEvent{
 		FirstPacketTS: entry.CreatedTS,
 		LastPacketTS:  entry.UpdatedTS,
 		ExpiredTS:     now,

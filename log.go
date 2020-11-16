@@ -1,4 +1,4 @@
-package main
+package edrint
 
 import (
 	"fmt"
@@ -26,7 +26,7 @@ func getLevel(l string) zerolog.Level {
 
 func SetupLogging(l string) {
 	zerolog.TimeFieldFormat = "2006-01-02 15:04:05.999999"
-	consoleWriter := zerolog.ConsoleWriter{Out: os.Stdout}
+	consoleWriter := zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: "15:04:05.999"}
 	logpath := filepath.Join("files", "logs", fmt.Sprintf("%s.log", time.Now().Format("2006-01-02")))
 	file := createFile(logpath)
 	multi := zerolog.MultiLevelWriter(consoleWriter, file)

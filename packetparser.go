@@ -1,50 +1,53 @@
-package packets
+package edrint
 
 import (
+	"errors"
+	"fmt"
 	"net"
 	"time"
+
+	"github.com/sharat910/edrint/common"
 
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/layers"
 	"github.com/google/gopacket/pcap"
 	"github.com/rs/zerolog/log"
-	"github.com/sharat910/edrint/eventbus"
-	"github.com/spf13/viper"
+	"github.com/sharat910/edrint/events"
 )
 
-type FiveTuple struct {
-	SrcIP, DstIP     string
-	SrcPort, DstPort uint16
-	Protocol         uint8
+type CaptureMode int
+
+const (
+	UNDEFINEDCM CaptureMode = iota
+	PCAPFILE
+	INTERFACE
+)
+
+type DirectionMode int
+
+const (
+	UNDEFINEDDM DirectionMode = iota
+	CLIENT_MAC
+	CLIENT_IP
+)
+
+type ParserConfig struct {
+	CapMode    CaptureMode
+	CapSource  string
+	DirMode    DirectionMode
+	DirMatches []string
 }
 
-type Packet struct {
-	Timestamp  time.Time
-	Header     FiveTuple
-	TotalLen   uint
-	Payload    []byte
-	IsOutbound bool
-	TCPLayer   layers.TCP
-}
-
-func (p Packet) GetKey() FiveTuple {
-	if p.IsOutbound {
-		return FiveTuple{
-			SrcIP:    p.Header.DstIP,
-			DstIP:    p.Header.SrcIP,
-			SrcPort:  p.Header.DstPort,
-			DstPort:  p.Header.SrcPort,
-			Protocol: p.Header.Protocol,
-		}
-	} else {
-		return p.Header
+func PacketParser(c ParserConfig, pf events.PubFunc) error {
+	if err := SanityCheck(c); err != nil {
+		return err
 	}
-}
 
-func PacketParser(eventbus *eventbus.EventBus) {
+	handle, err := GetHandle(c)
+	if err != nil {
+		return err
+	}
 
-	handle, source := GetHandle()
-	dirMac := viper.GetString("packets.direction.mode") == "mac"
 	var (
 		// Will reuse these for each packet
 		ethLayer   layers.Ethernet
@@ -67,20 +70,24 @@ func PacketParser(eventbus *eventbus.EventBus) {
 
 	// Uni IPs
 	var clientSubnets []*net.IPNet
-	if !dirMac {
-		clientSubnets = GetClientSubnets()
+	if c.DirMode == CLIENT_IP {
+		clientSubnets, err = GetClientSubnets(c)
+		if err != nil {
+			return err
+		}
 	}
 
 	packetSource := gopacket.NewPacketSource(handle, handle.LinkType())
 	packetSource.DecodeOptions.Lazy = true
 	packetSource.DecodeOptions.NoCopy = true
 
+	upPktCount := 0
 	pktCount := 0
 	log.Info().Msg("packet processor started")
 	var firstPacketTS, lastPacketTS time.Time
 	for packet := range packetSource.Packets() {
 		pktCount++
-		var p Packet
+		var p common.Packet
 		p.Timestamp = packet.Metadata().Timestamp
 		p.TotalLen = uint(packet.Metadata().Length)
 		appLayer := packet.ApplicationLayer()
@@ -104,10 +111,11 @@ func PacketParser(eventbus *eventbus.EventBus) {
 		for _, layerType := range foundLayerTypes {
 			switch layerType {
 			case layers.LayerTypeEthernet:
-				if dirMac {
-					for _, clientMac := range viper.GetStringSlice("packets.direction.client_macs") {
+				if c.DirMode == CLIENT_MAC {
+					for _, clientMac := range c.DirMatches {
 						if ethLayer.SrcMAC.String() == clientMac {
 							p.IsOutbound = true
+							upPktCount++
 							break
 						}
 					}
@@ -116,10 +124,11 @@ func PacketParser(eventbus *eventbus.EventBus) {
 				p.Header.SrcIP = ip4Layer.SrcIP.String()
 				p.Header.DstIP = ip4Layer.DstIP.String()
 				p.Header.Protocol = uint8(ip4Layer.Protocol)
-				if !dirMac {
+				if c.DirMode == CLIENT_IP {
 					for _, s := range clientSubnets {
 						if s.Contains(ip4Layer.SrcIP) {
 							p.IsOutbound = true
+							upPktCount++
 							break
 						}
 					}
@@ -128,7 +137,7 @@ func PacketParser(eventbus *eventbus.EventBus) {
 				p.Header.SrcIP = ip6Layer.SrcIP.String()
 				p.Header.DstIP = ip6Layer.DstIP.String()
 				p.Header.Protocol = uint8(ip6Layer.NextHeader)
-				if !dirMac {
+				if c.DirMode == CLIENT_IP {
 					for _, s := range clientSubnets {
 						if s.Contains(ip6Layer.SrcIP) {
 							p.IsOutbound = true
@@ -137,61 +146,75 @@ func PacketParser(eventbus *eventbus.EventBus) {
 					}
 				}
 			case layers.LayerTypeICMPv4:
-				eventbus.Publish("packet", p)
+				pf(events.PACKET, p)
 			case layers.LayerTypeUDP:
 				p.Header.SrcPort = uint16(udpLayer.SrcPort)
 				p.Header.DstPort = uint16(udpLayer.DstPort)
-				eventbus.Publish("packet", p)
+				pf(events.PACKET, p)
 			case layers.LayerTypeTCP:
 				p.Header.SrcPort = uint16(tcpLayer.SrcPort)
 				p.Header.DstPort = uint16(tcpLayer.DstPort)
 				p.TCPLayer = tcpLayer
-				eventbus.Publish("packet", p)
+				pf(events.PACKET, p)
 			}
 		}
 	}
 	log.Info().Int("packet_count", pktCount).Msg("packet processing completed")
-	eventbus.Publish("packet_parser.metadata", struct {
+	if upPktCount == 0 {
+		log.Warn().Msg("No upload packet! Maybe check config.")
+	}
+	pf("packet_parser.metadata", struct {
 		NPackets      int       `json:"n_packets"`
+		UpPackets     int       `json:"up_packets"`
 		FirstPacketTS time.Time `json:"first_packet_ts"`
 		LastPacketTS  time.Time `json:"last_packet_ts"`
 		Source        string
-	}{pktCount, firstPacketTS, lastPacketTS, source})
+	}{pktCount, upPktCount, firstPacketTS, lastPacketTS, c.CapSource})
+	return nil
 }
 
-func GetClientSubnets() []*net.IPNet {
+func SanityCheck(c ParserConfig) error {
+	if c.CapMode == UNDEFINEDCM {
+		return errors.New("capture mode undefined")
+	}
+
+	if c.DirMode == UNDEFINEDDM {
+		return errors.New("direction inference mode undefined")
+	}
+	return nil
+}
+
+func GetClientSubnets(c ParserConfig) ([]*net.IPNet, error) {
 	var clientSubnets []*net.IPNet
-	for _, s := range viper.GetStringSlice("packets.direction.client_ips") {
+	for _, s := range c.DirMatches {
 		_, subnet, err := net.ParseCIDR(s)
 		if err != nil {
-			log.Fatal().Err(err).Str("subnet", s).Msg("unable to parse subnet")
+			return clientSubnets, fmt.Errorf("unable to parse subnet: %s", s)
 		}
 		clientSubnets = append(clientSubnets, subnet)
 	}
-	return clientSubnets
+	return clientSubnets, nil
 }
 
-func GetHandle() (*pcap.Handle, string) {
+func GetHandle(c ParserConfig) (*pcap.Handle, error) {
+	var err error
+	var source string
 	var handle *pcap.Handle
-	source := viper.GetString("packets.source")
-	if source == "pcap" {
-		var err error
-		pcapPath := viper.GetString("packets.pcap_path")
-		handle, err = pcap.OpenOffline(pcapPath)
+	switch c.CapMode {
+	case PCAPFILE:
+		handle, err = pcap.OpenOffline(c.CapSource)
 		if err != nil {
 			log.Fatal().Err(err).Msg("unable to open pcap")
 		}
-		log.Info().Str("packet_source", source).Str("pcap_path", pcapPath).Msg("handle created")
-		source = pcapPath
-	} else if source == "interface" {
-		var err error
-		iface := viper.GetString("packets.interface")
-		handle, err = pcap.OpenLive(iface, 9600, true, time.Minute)
+		log.Info().Str("packet_source", source).Str("pcap_path", c.CapSource).Msg("handle created")
+	case INTERFACE:
+		handle, err = pcap.OpenLive(c.CapSource, 9600, true, time.Minute)
 		if err != nil {
 			log.Fatal().Err(err).Msg("unable to open pcap")
 		}
-		log.Info().Str("packet_source", source).Str("interface", iface).Msg("handle created")
-		source = iface
+		log.Info().Str("packet_source", source).Str("interface", c.CapSource).Msg("handle created")
+	default:
+		return nil, errors.New("unknown capture mode")
 	}
-	return handle, source
+	return handle, nil
 }

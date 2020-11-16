@@ -5,21 +5,19 @@ import (
 	"fmt"
 
 	"github.com/rs/zerolog/log"
-	"github.com/spf13/viper"
-
-	"github.com/sharat910/edrint/eventbus"
-	"github.com/sharat910/edrint/packets"
+	"github.com/sharat910/edrint/common"
+	"github.com/sharat910/edrint/events"
 	"github.com/sharat910/edrint/telemetry"
 )
 
 type TelemetryManager struct {
 	BasePublisher
-	Classes map[string][]string
+	Classes map[string][]telemetry.TeleGen
 }
 
-func NewTelemetryManager() *TelemetryManager {
+func NewTelemetryManager(classToTFS map[string][]telemetry.TeleGen) *TelemetryManager {
 	return &TelemetryManager{
-		Classes: make(map[string][]string),
+		Classes: classToTFS,
 	}
 }
 
@@ -28,30 +26,46 @@ func (tm *TelemetryManager) Name() string {
 }
 
 func (tm *TelemetryManager) Init() {
-	tm.Classes = viper.GetStringMapStringSlice(fmt.Sprintf("processors.%s.classes", tm.Name()))
 	log.Debug().Str("proc", tm.Name()).Str("classes", fmt.Sprint(tm.Classes)).Msg("Init")
 }
 
-func (tm *TelemetryManager) Subs() []eventbus.Topic {
-	return []eventbus.Topic{"classification"}
+func (tm *TelemetryManager) Subs() []events.Topic {
+	return []events.Topic{events.CLASSIFICATION}
 }
 
-func (tm *TelemetryManager) Pubs() []eventbus.Topic {
-	return []eventbus.Topic{"flow.attach_telemetry"}
+func (tm *TelemetryManager) Pubs() []events.Topic {
+	pubMap := map[events.Topic]struct{}{
+		events.FLOW_ATTACH_TELEMETRY: {},
+	}
+	for _, tfgens := range tm.Classes {
+		for _, tfgen := range tfgens {
+			tf := tfgen()
+			for _, pub := range tf.Pubs() {
+				pubMap[pub] = struct{}{}
+			}
+		}
+	}
+	var pubs []events.Topic
+	for pub := range pubMap {
+		pubs = append(pubs, pub)
+	}
+	return pubs
 }
 
-func (tm *TelemetryManager) EventHandler(topic eventbus.Topic, event interface{}) {
+func (tm *TelemetryManager) EventHandler(topic events.Topic, event interface{}) {
 	switch topic {
-	case "classification":
+	case events.CLASSIFICATION:
 		clf := event.(EventClassification)
 		var tfs []telemetry.Telemetry
-
-		for _, tf := range tm.Classes[clf.Class] {
-			tfs = append(tfs, telemetry.GetByName(tf, clf.Header, tm.eb))
+		for _, tfgen := range tm.Classes[clf.Class] {
+			tf := tfgen()
+			tf.SetPubFunc(tm.pf)
+			tf.SetHeader(clf.Header)
+			tfs = append(tfs, tf)
 		}
 
 		if len(tfs) != 0 {
-			tm.Publish("flow.attach_telemetry", EventAttachPerFlowTelemetry{
+			tm.Publish(events.FLOW_ATTACH_TELEMETRY, EventAttachPerFlowTelemetry{
 				Header:             clf.Header,
 				TelemetryFunctions: tfs,
 			})
@@ -60,7 +74,7 @@ func (tm *TelemetryManager) EventHandler(topic eventbus.Topic, event interface{}
 }
 
 type EventAttachPerFlowTelemetry struct {
-	Header             packets.FiveTuple
+	Header             common.FiveTuple
 	TelemetryFunctions []telemetry.Telemetry
 }
 
@@ -70,7 +84,7 @@ func (e EventAttachPerFlowTelemetry) MarshalJSON() ([]byte, error) {
 		tfNames[i] = tf.Name()
 	}
 	return json.Marshal(struct {
-		Header             packets.FiveTuple
+		Header             common.FiveTuple
 		TelemetryFunctions []string
 	}{
 		e.Header,

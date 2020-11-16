@@ -6,12 +6,11 @@ import (
 	"time"
 
 	"github.com/rs/zerolog/log"
-	"github.com/sharat910/edrint/eventbus"
-	"github.com/sharat910/edrint/packets"
-	"github.com/spf13/viper"
+	"github.com/sharat910/edrint/common"
+	"github.com/sharat910/edrint/events"
 )
 
-type TCPRetransmitSimple struct {
+type TCPRetransmit struct {
 	BaseFlowTelemetry
 	firstPacketSeen bool
 	firstPacketTS   time.Time
@@ -27,32 +26,28 @@ type TCPRetransmitSimple struct {
 	ProcessingTime   time.Duration
 }
 
-type EventTCPRetransmitSimple struct {
-	FirstPacketTS   time.Time
-	LastPacketTS    time.Time
-	IntervalMS      int
-	Header          packets.FiveTuple
-	RetransmitsUp   []int
-	RetransmitsDown []int
+func (tsl *TCPRetransmit) Pubs() []events.Topic {
+	return []events.Topic{events.TELEMETRY_TCP_RETRANSMIT}
 }
 
-func NewTCPRetransmitSimple() *TCPRetransmitSimple {
-	var t TCPRetransmitSimple
-	interval := viper.GetInt(fmt.Sprintf("telemetry.%s.interval_ms", t.Name()))
-	if interval == 0 {
-		log.Warn().Msg("tcp_retransmit_simple unable to read interval. Setting default: 1sec")
-		interval = 1000
+func NewTCPRetransmit(intervalMS int) TeleGen {
+	if intervalMS == 0 {
+		log.Warn().Msg("tcp_retransmit_simple unable to read intervalMS. Setting default: 1sec")
+		intervalMS = 1000
 	}
-	log.Debug().Str("telemetry", t.Name()).Int("interval", interval).Msg("config")
-	t.intervalMS = interval
-	return &t
+	return func() Telemetry {
+		var t TCPRetransmit
+		t.intervalMS = intervalMS
+		log.Debug().Str("telemetry", t.Name()).Int("intervalMS", intervalMS).Msg("config")
+		return &t
+	}
 }
 
-func (tsl *TCPRetransmitSimple) Name() string {
+func (tsl *TCPRetransmit) Name() string {
 	return "tcp_retransmit_simple"
 }
 
-func (tsl *TCPRetransmitSimple) OnFlowPacket(p packets.Packet) {
+func (tsl *TCPRetransmit) OnFlowPacket(p common.Packet) {
 	defer func(start time.Time) {
 		tsl.ProcessedPackets++
 		tsl.ProcessingTime += time.Since(start)
@@ -72,27 +67,33 @@ func (tsl *TCPRetransmitSimple) OnFlowPacket(p packets.Packet) {
 	tsl.lastPacketTS = p.Timestamp
 }
 
-func (tsl *TCPRetransmitSimple) ExtendUntil(idx int) {
+func (tsl *TCPRetransmit) ExtendUntil(idx int) {
 	for i := len(tsl.RetransmitsDown); i <= idx; i++ {
 		tsl.RetransmitsDown = append(tsl.RetransmitsDown, 0)
 		tsl.RetransmitsUp = append(tsl.RetransmitsUp, 0)
 	}
 }
 
-func (tsl *TCPRetransmitSimple) Teardown() {
+func (tsl *TCPRetransmit) Teardown() {
 	log.Debug().Str("processing_time", tsl.ProcessingTime.String()).Uint("packets", tsl.ProcessedPackets).
 		Str("telemetry", tsl.Name()).Str("header", fmt.Sprint(tsl.header)).Msg("teardown")
-	tsl.Publish(eventbus.Topic("telemetry."+tsl.Name()), EventTCPRetransmitSimple{
-		FirstPacketTS:   tsl.firstPacketTS,
-		LastPacketTS:    tsl.lastPacketTS,
-		IntervalMS:      tsl.intervalMS,
-		Header:          tsl.header,
-		RetransmitsUp:   tsl.RetransmitsUp,
-		RetransmitsDown: tsl.RetransmitsDown,
+	tsl.Publish(events.TELEMETRY_TCP_RETRANSMIT, struct {
+		FirstPacketTS   time.Time
+		LastPacketTS    time.Time
+		IntervalMS      int
+		Header          common.FiveTuple
+		RetransmitsUp   []int
+		RetransmitsDown []int
+	}{tsl.firstPacketTS,
+		tsl.lastPacketTS,
+		tsl.intervalMS,
+		tsl.header,
+		tsl.RetransmitsUp,
+		tsl.RetransmitsDown,
 	})
 }
 
-func (tsl *TCPRetransmitSimple) IncRetransmitCounters(p packets.Packet, idx int) {
+func (tsl *TCPRetransmit) IncRetransmitCounters(p common.Packet, idx int) {
 	if p.IsOutbound {
 		if p.TCPLayer.Seq >= tsl.MaxSeqUp {
 			tsl.MaxSeqUp = p.TCPLayer.Seq
@@ -148,6 +149,10 @@ type TCPRTT struct {
 	DC RTTDebugCounters
 }
 
+func (tr *TCPRTT) Pubs() []events.Topic {
+	return []events.Topic{events.TELEMETRY_TCP_RTT}
+}
+
 type RTTDebugCounters struct {
 	ProcessingTime     time.Duration
 	EntriesInserted    uint
@@ -157,11 +162,13 @@ type RTTDebugCounters struct {
 	ProcessedPackets   uint
 }
 
-func NewTCPRTT() *TCPRTT {
-	return &TCPRTT{m: make(map[uint32]*RTTEntry)}
+func NewTCPRTT() TeleGen {
+	return func() Telemetry {
+		return &TCPRTT{m: make(map[uint32]*RTTEntry)}
+	}
 }
 
-func (tr *TCPRTT) OnFlowPacket(p packets.Packet) {
+func (tr *TCPRTT) OnFlowPacket(p common.Packet) {
 	defer func(start time.Time) {
 		tr.DC.ProcessedPackets++
 		tr.DC.ProcessingTime += time.Since(start)
@@ -191,7 +198,10 @@ func (tr *TCPRTT) OnFlowPacket(p packets.Packet) {
 		eack := p.TCPLayer.Seq + pLen
 		re, exists := tr.m[eack]
 		if exists {
-			re.Ignore = true
+			log.Warn().Time("tstamp", p.Timestamp).
+				Uint32("seq", p.TCPLayer.Seq).
+				Msg("not ignoring retransmitted upload packet")
+			//re.Ignore = true
 			return
 		}
 		re = &RTTEntry{Timestamp: p.Timestamp, PayloadLen: pLen}
@@ -255,9 +265,9 @@ func (tr *TCPRTT) OnFlowPacket(p packets.Packet) {
 	}
 }
 
-func (tr *TCPRTT) AddRTTSample(p packets.Packet, re *RTTEntry) {
-	//log.Debug().Time("t", p.Timestamp).Str("header", fmt.Sprint(p.GetKey())).Uint32("ack", p.TCPLayer.Ack).
-	//	Dur("rtt", p.Timestamp.Sub(re.Timestamp)).Msg("rtt_sample")
+func (tr *TCPRTT) AddRTTSample(p common.Packet, re *RTTEntry) {
+	log.Debug().Time("t", p.Timestamp).Str("header", fmt.Sprint(p.GetKey())).Uint32("ack", p.TCPLayer.Ack).
+		Dur("rtt", p.Timestamp.Sub(re.Timestamp)).Msg("rtt_sample")
 
 	tr.RTTMS = append(tr.RTTMS, uint(p.Timestamp.Sub(re.Timestamp)/time.Millisecond))
 	tr.RelTimestampMS = append(tr.RelTimestampMS, uint(p.Timestamp.Sub(tr.firstPacketTS)/time.Millisecond))
@@ -267,10 +277,10 @@ func (tr *TCPRTT) AddRTTSample(p packets.Packet, re *RTTEntry) {
 func (tr *TCPRTT) Teardown() {
 	tr.DC.StaleEntries = uint(len(tr.m))
 	log.Debug().Str("stats", fmt.Sprintf("%+v", tr.DC)).Str("telemetry", "tcp_rtt").Msg("teardown")
-	tr.Publish("telemetry.tcp_rtt", struct {
+	tr.Publish(events.TELEMETRY_TCP_RTT, struct {
 		FirstPacketTS  time.Time
 		LastPacketTS   time.Time
-		Header         packets.FiveTuple
+		Header         common.FiveTuple
 		RelTimestampMS []uint
 		RTTMS          []uint
 	}{

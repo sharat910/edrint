@@ -1,8 +1,9 @@
-package eventbus
+package events
 
 import "sync"
 
 type Topic string
+type PubFunc func(topic Topic, event interface{})
 
 type EventBus struct {
 	topics map[Topic][]EventHandler

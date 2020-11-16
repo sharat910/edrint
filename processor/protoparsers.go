@@ -7,12 +7,12 @@ import (
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/layers"
 	"github.com/rs/zerolog/log"
-	"github.com/sharat910/edrint/eventbus"
-	"github.com/sharat910/edrint/packets"
+	"github.com/sharat910/edrint/common"
+	"github.com/sharat910/edrint/events"
 )
 
 type DNSParser struct {
-	eb *eventbus.EventBus
+	BasePublisher
 }
 
 func NewDNSParser() *DNSParser {
@@ -33,16 +33,16 @@ func (dp *DNSParser) Name() string {
 	return "dns"
 }
 
-func (dp *DNSParser) Subs() []eventbus.Topic {
-	return []eventbus.Topic{"packet"}
+func (dp *DNSParser) Subs() []events.Topic {
+	return []events.Topic{events.PACKET}
 }
 
-func (dp *DNSParser) Pubs() []eventbus.Topic {
-	return []eventbus.Topic{"dns"}
+func (dp *DNSParser) Pubs() []events.Topic {
+	return []events.Topic{events.PROTOCOL_DNS}
 }
 
-func (dp *DNSParser) EventHandler(topic eventbus.Topic, event interface{}) {
-	p := event.(packets.Packet)
+func (dp *DNSParser) EventHandler(topic events.Topic, event interface{}) {
+	p := event.(common.Packet)
 
 	// Packet Filter
 	if p.Header.SrcPort != 53 || p.Header.Protocol != 17 {
@@ -73,16 +73,12 @@ func (dp *DNSParser) EventHandler(topic eventbus.Topic, event interface{}) {
 		}
 		if dnsRec.Type == layers.DNSTypeA || dnsRec.Type == layers.DNSTypeAAAA {
 			dr.ServerIP = dnsRec.IP.String()
-			dp.eb.Publish("dns", dr)
+			dp.Publish(events.PROTOCOL_DNS, dr)
 		} else if dnsRec.Type == layers.DNSTypeCNAME {
 			dr.ServerIP = ""
-			dp.eb.Publish("dns", dr)
+			dp.Publish(events.PROTOCOL_DNS, dr)
 		}
 	}
-}
-
-func (dp *DNSParser) SetEventBus(eb *eventbus.EventBus) {
-	dp.eb = eb
 }
 
 func (dp *DNSParser) Init() {
@@ -92,7 +88,7 @@ func (dp *DNSParser) Teardown() {
 }
 
 type SNIParser struct {
-	eb *eventbus.EventBus
+	BasePublisher
 }
 
 func NewSNIParser() *SNIParser {
@@ -102,19 +98,19 @@ func NewSNIParser() *SNIParser {
 type SNIRecord struct {
 	Timestamp time.Time
 	SNI       string
-	Header    packets.FiveTuple
+	Header    common.FiveTuple
 }
 
 func (dp *SNIParser) Name() string {
 	return "sni"
 }
 
-func (dp *SNIParser) Subs() []eventbus.Topic {
-	return []eventbus.Topic{"packet"}
+func (dp *SNIParser) Subs() []events.Topic {
+	return []events.Topic{events.PACKET}
 }
 
-func (dp *SNIParser) Pubs() []eventbus.Topic {
-	return []eventbus.Topic{"sni"}
+func (dp *SNIParser) Pubs() []events.Topic {
+	return []events.Topic{events.PROTOCOL_SNI}
 }
 
 func extractTCPSNI(payload []byte) (string, bool) {
@@ -187,8 +183,8 @@ func bytesToInt16(byteSlice []byte) int {
 	return int(byteSlice[0])<<8 + int(byteSlice[1])
 }
 
-func (dp *SNIParser) EventHandler(topic eventbus.Topic, event interface{}) {
-	p := event.(packets.Packet)
+func (dp *SNIParser) EventHandler(topic events.Topic, event interface{}) {
+	p := event.(common.Packet)
 
 	// Packet Filter
 	if p.Header.Protocol != 6 {
@@ -199,19 +195,9 @@ func (dp *SNIParser) EventHandler(topic eventbus.Topic, event interface{}) {
 	if !present {
 		return
 	}
-	dp.eb.Publish("sni", SNIRecord{
+	dp.Publish(events.PROTOCOL_SNI, SNIRecord{
 		Timestamp: p.Timestamp,
 		SNI:       sni,
 		Header:    p.Header,
 	})
-}
-
-func (dp *SNIParser) SetEventBus(eb *eventbus.EventBus) {
-	dp.eb = eb
-}
-
-func (dp *SNIParser) Init() {
-}
-
-func (dp *SNIParser) Teardown() {
 }

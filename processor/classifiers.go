@@ -8,9 +8,8 @@ import (
 	"strings"
 
 	"github.com/rs/zerolog/log"
-	"github.com/sharat910/edrint/eventbus"
-	"github.com/sharat910/edrint/packets"
-	"github.com/spf13/viper"
+	"github.com/sharat910/edrint/common"
+	"github.com/sharat910/edrint/events"
 )
 
 type Rule struct {
@@ -113,7 +112,7 @@ func BuildRule(config map[string]string) Rule {
 	return r
 }
 
-func (r Rule) Match(header packets.FiveTuple) bool {
+func (r Rule) Match(header common.FiveTuple) bool {
 	if r.ProtocolMatch && header.Protocol != r.Protocol {
 		return false
 	}
@@ -137,21 +136,21 @@ func (r Rule) Match(header packets.FiveTuple) bool {
 
 type HeaderClassifier struct {
 	BasePublisher
-	Rules map[string]Rule
+	ruleConfig map[string]map[string]string
+	Rules      map[string]Rule
 }
 
-func NewHeaderClassifer() *HeaderClassifier {
-	return &HeaderClassifier{
+func NewHeaderClassifer(ruleConfig map[string]map[string]string) *HeaderClassifier {
+	hc := &HeaderClassifier{
 		Rules: make(map[string]Rule),
 	}
+	for class, rule := range ruleConfig {
+		hc.Rules[class] = BuildRule(rule)
+	}
+	return hc
 }
 
 func (hc *HeaderClassifier) Init() {
-	config := viper.GetStringMap(fmt.Sprintf("processors.%s.classes", hc.Name()))
-	for class := range config {
-		hc.Rules[class] = BuildRule(viper.GetStringMapString(
-			fmt.Sprintf("processors.%s.classes.%s", hc.Name(), class)))
-	}
 	log.Debug().Str("proc", hc.Name()).Str("rules", fmt.Sprint(hc.Rules)).Msg("init")
 }
 
@@ -159,20 +158,20 @@ func (hc *HeaderClassifier) Name() string {
 	return "header_classifier"
 }
 
-func (hc *HeaderClassifier) Subs() []eventbus.Topic {
-	return []eventbus.Topic{"flow.created"}
+func (hc *HeaderClassifier) Subs() []events.Topic {
+	return []events.Topic{events.FLOW_CREATED}
 }
 
-func (hc *HeaderClassifier) Pubs() []eventbus.Topic {
-	return []eventbus.Topic{"classification"}
+func (hc *HeaderClassifier) Pubs() []events.Topic {
+	return []events.Topic{events.CLASSIFICATION}
 }
 
-func (hc *HeaderClassifier) EventHandler(topic eventbus.Topic, event interface{}) {
+func (hc *HeaderClassifier) EventHandler(topic events.Topic, event interface{}) {
 	fc := event.(FlowCreatedEvent)
 	for class, rule := range hc.Rules {
 		if rule.Match(fc.Header) {
 			log.Debug().Str("header", fmt.Sprint(fc.Header)).Str("class", class).Msg("classification")
-			hc.Publish("classification", EventClassification{
+			hc.Publish(events.CLASSIFICATION, EventClassification{
 				Header: fc.Header,
 				Class:  class,
 			})
@@ -181,6 +180,6 @@ func (hc *HeaderClassifier) EventHandler(topic eventbus.Topic, event interface{}
 }
 
 type EventClassification struct {
-	Header packets.FiveTuple
+	Header common.FiveTuple
 	Class  string
 }
