@@ -15,10 +15,14 @@ type TelemetryManager struct {
 	Classes map[string][]telemetry.TeleGen
 }
 
-func NewTelemetryManager(classToTFS map[string][]telemetry.TeleGen) *TelemetryManager {
+func NewTelemetryManager() *TelemetryManager {
 	return &TelemetryManager{
-		Classes: classToTFS,
+		Classes: make(map[string][]telemetry.TeleGen),
 	}
+}
+
+func (tm *TelemetryManager) AddTFToClass(class string, tfgen telemetry.TeleGen) {
+	tm.Classes[class] = append(tm.Classes[class], tfgen)
 }
 
 func (tm *TelemetryManager) Name() string {

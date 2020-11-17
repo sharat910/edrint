@@ -1,0 +1,44 @@
+packets:
+  capture_mode: "pcap" # interface or pcap
+  direction:
+    mode: "ip" # mac or ip
+    client_macs:
+      - ""
+    client_ips:
+      - "10.0.1.2/32"
+      - "10.0.0.2/32"
+      - "192.168.0.0/16"
+
+processors:
+  dump:
+    enabled: true
+    path: "./files/dumps/dump.json.log"
+    topics:
+      - "packet_parser.metadata"
+      - "classification"
+      - "flow.attach_telemetry"
+      - "telemetry.tcp_retransmit_simple"
+      - "telemetry.flowpulse"
+      - "telemetry.tcp_rtt"
+
+  header_classifier:
+    classes:
+      https:
+        client_ip: '*'
+        server_ip: '*'
+        client_port: '*' # syntax: 'n': p == n, 'm-n': m<=p<=n
+        server_port: '443'
+        protocol: '6'
+
+  telemetry_manager:
+    enabled: true
+    classes:
+      https: ['tcp_rtt', 'flowpulse', 'tcp_retransmit']
+
+
+telemetry:
+  flowpulse:
+    interval_ms: 1000
+  tcp_retransmit:
+    interval_ms: 1000
+
