@@ -257,6 +257,7 @@ func (tr *TCPRTT) OnFlowPacket(p common.Packet) {
 			//	Uint32("ack", p.TCPLayer.Ack).Dur("rtt", p.Timestamp.Sub(re.Timestamp)).
 			//	Msg("ignoring rtt_sample")
 			tr.DC.AcksIgnored++
+			delete(tr.m, p.TCPLayer.Ack)
 			return
 		}
 
