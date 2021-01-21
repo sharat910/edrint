@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"time"
 
 	"github.com/sharat910/edrint/telemetry"
 
@@ -18,7 +17,7 @@ import (
 
 func main() {
 	SetupConfig()
-	edrint.SetupLogging("info")
+	edrint.SetupLogging("debug")
 	manager := edrint.New()
 	manager.RegisterProc(processor.NewFlowProcessor(2))
 	rules := GetClassificationRules()
@@ -26,14 +25,15 @@ func main() {
 
 	teleManager := processor.NewTelemetryManager()
 	//teleManager.AddTFToClass("https", telemetry.NewFlowPulse(100))
-	teleManager.AddTFToClass("https", telemetry.NewGapChunkDetector(10*time.Millisecond))
+	teleManager.AddTFToClass("cloud", telemetry.NewFrameDetector())
 	manager.RegisterProc(teleManager)
 
 	manager.RegisterProc(processor.NewDumper("./files/dumps/dump.json.log",
 		[]events.Topic{
-			//events.FLOW_ATTACH_TELEMETRY,
-			//events.TELEMETRY_FLOWPULSE,
-			events.TELEMETRY_GAP_CHUNK,
+			events.FLOW_ATTACH_TELEMETRY,
+			events.TELEMETRY_FRAME,
+			//events.TELEMETRY_FLOWPRINT,
+			//events.TELEMETRY_GAP_CHUNK,
 		}))
 
 	err := manager.InitProcessors()
@@ -44,7 +44,7 @@ func main() {
 		CapMode:    edrint.PCAPFILE,
 		CapSource:  viper.GetString("packets.source"),
 		DirMode:    edrint.CLIENT_IP,
-		DirMatches: []string{"172.23.0.2/24"},
+		DirMatches: []string{"10.100.0.0/16"},
 	})
 	if err != nil {
 		log.Fatal().Err(err).Msg("some error occurred")

@@ -5,6 +5,7 @@ packets:
     client_macs:
       - ""
     client_ips:
+      - "10.100.0.0/16"
       - "10.0.1.2/32"
       - "10.0.0.2/32"
       - "192.168.0.0/16"
@@ -23,12 +24,12 @@ processors:
 
   header_classifier:
     classes:
-      https:
+      cloud:
         client_ip: '*'
         server_ip: '*'
         client_port: '*' # syntax: 'n': p == n, 'm-n': m<=p<=n
-        server_port: '443'
-        protocol: '6'
+        server_port: '1189'
+        protocol: '17'
 
   telemetry_manager:
     enabled: true
