@@ -31,3 +31,4 @@ func (bt *BaseFlowTelemetry) Publish(topic events.Topic, event interface{}) {
 	bt.pf(topic, event)
 }
 func (bt *BaseFlowTelemetry) SetHeader(header common.FiveTuple) { bt.header = header }
+func (bt *BaseFlowTelemetry) GetHeader() common.FiveTuple       { return bt.header }

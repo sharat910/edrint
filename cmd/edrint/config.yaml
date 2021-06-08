@@ -5,9 +5,10 @@ packets:
     client_macs:
       - ""
     client_ips:
-      - "10.100.0.0/16"
-      - "10.0.1.2/32"
-      - "10.0.0.2/32"
+      - "131.236.0.0/16"
+      - "129.94.0.0/16"
+      - "149.174.0.0/16"
+      - "10.0.0.0/8"
       - "192.168.0.0/16"
 
 processors:
@@ -24,12 +25,24 @@ processors:
 
   header_classifier:
     classes:
-      cloud:
+      amazonprime:
+        client_ip: '131.236.139.10/32'
+        server_ip: '117.121.253.125/32'
+        client_port: '*' # syntax: 'n': p == n, 'm-n': m<=p<=n
+        server_port: '443'
+        protocol: '6'
+      zoomudp:
         client_ip: '*'
         server_ip: '*'
         client_port: '*' # syntax: 'n': p == n, 'm-n': m<=p<=n
-        server_port: '1189'
+        server_port: '8801'
         protocol: '17'
+      zoomtcp:
+        client_ip: '*'
+        server_ip: '1.1.1.1'
+        client_port: '*' # syntax: 'n': p == n, 'm-n': m<=p<=n
+        server_port: '443'
+        protocol: '6'
 
   telemetry_manager:
     enabled: true

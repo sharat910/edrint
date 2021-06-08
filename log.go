@@ -10,20 +10,6 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func getLevel(l string) zerolog.Level {
-	switch l {
-	case "info":
-		return zerolog.InfoLevel
-	case "debug":
-		return zerolog.DebugLevel
-	case "trace":
-		return zerolog.TraceLevel
-	default:
-		fmt.Println("unknown level string: setting logging level to info")
-		return zerolog.InfoLevel
-	}
-}
-
 func SetupLogging(l string) {
 	zerolog.TimeFieldFormat = "2006-01-02 15:04:05.000000"
 	consoleWriter := zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: "15:04:05.000"}
@@ -31,7 +17,11 @@ func SetupLogging(l string) {
 	file := createFile(logpath)
 	multi := zerolog.MultiLevelWriter(consoleWriter, file)
 	log.Logger = zerolog.New(multi).With().Timestamp().Logger()
-	zerolog.SetGlobalLevel(getLevel(l))
+	lvl, err := zerolog.ParseLevel(l)
+	if err != nil {
+		log.Fatal().Err(err).Msg("incorrect level")
+	}
+	zerolog.SetGlobalLevel(lvl)
 	log.Info().Str("Level", l).Msg("Logging setup done")
 }
 
