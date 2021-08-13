@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"net"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -182,4 +183,42 @@ func (hc *HeaderClassifier) EventHandler(topic events.Topic, event interface{}) 
 type EventClassification struct {
 	Header common.FiveTuple
 	Class  string
+}
+
+type SNIClassifier struct {
+	BasePublisher
+	rules map[string]*regexp.Regexp
+}
+
+func NewSNIClassifier(rules map[string]string) Processor {
+	compiledRules := make(map[string]*regexp.Regexp)
+	for class, reg := range rules {
+		re, err := regexp.Compile(reg)
+		if err != nil {
+			log.Fatal().Str("regexp", reg).Err(err).Msg("regexp not compiling")
+		}
+		compiledRules[class] = re
+	}
+	return &SNIClassifier{rules: compiledRules}
+}
+
+func (S *SNIClassifier) Name() string {
+	return "sni_classifier"
+}
+
+func (S *SNIClassifier) Subs() []events.Topic {
+	return []events.Topic{events.PROTOCOL_SNI}
+}
+
+func (S *SNIClassifier) Pubs() []events.Topic {
+	return []events.Topic{events.CLASSIFICATION}
+}
+
+func (S *SNIClassifier) EventHandler(topic events.Topic, event interface{}) {
+	sni := event.(SNIRecord)
+	for class, re := range S.rules {
+		if re.MatchString(sni.SNI) {
+			S.Publish(events.CLASSIFICATION, EventClassification{Header: sni.Header, Class: class})
+		}
+	}
 }

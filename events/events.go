@@ -19,4 +19,6 @@ const (
 	TELEMETRY_GAP_CHUNK      = Topic("telemetry.gap_chunk")
 	TELEMETRY_FRAME          = Topic("telemetry.frame")
 	TELEMETRY_HTTP_CHUNK     = Topic("telemetry.http_chunk")
+	TELEMETRY_HTTP_REQ       = Topic("telemetry.http_req")
+	TELEMETRY_FLOWLET        = Topic("telemetry.flowlet")
 )

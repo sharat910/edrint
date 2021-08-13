@@ -113,7 +113,7 @@ func (dp *SNIParser) Pubs() []events.Topic {
 	return []events.Topic{events.PROTOCOL_SNI}
 }
 
-func extractTCPSNI(payload []byte) (string, bool) {
+func ExtractTCPSNI(payload []byte) (string, bool) {
 	pLen := len(payload)
 	var serverName string
 	// Check if the packet is a Client Hello
@@ -191,13 +191,13 @@ func (dp *SNIParser) EventHandler(topic events.Topic, event interface{}) {
 		return
 	}
 
-	sni, present := extractTCPSNI(p.Payload)
+	sni, present := ExtractTCPSNI(p.Payload)
 	if !present {
 		return
 	}
 	dp.Publish(events.PROTOCOL_SNI, SNIRecord{
 		Timestamp: p.Timestamp,
 		SNI:       sni,
-		Header:    p.Header,
+		Header:    p.GetKey(),
 	})
 }

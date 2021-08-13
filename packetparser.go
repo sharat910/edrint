@@ -36,6 +36,8 @@ type ParserConfig struct {
 	CapSource  string
 	DirMode    DirectionMode
 	DirMatches []string
+	BPF        string
+	MaxPackets int
 }
 
 func PacketParser(c ParserConfig, pf events.PubFunc) error {
@@ -158,6 +160,9 @@ func PacketParser(c ParserConfig, pf events.PubFunc) error {
 				pf(events.PACKET, p)
 			}
 		}
+		if c.MaxPackets != 0 && pktCount >= c.MaxPackets {
+			break
+		}
 	}
 	log.Info().Int("packet_count", pktCount).Msg("packet processing completed")
 	if upPktCount == 0 {
@@ -205,6 +210,12 @@ func GetHandle(c ParserConfig) (*pcap.Handle, error) {
 		handle, err = pcap.OpenOffline(c.CapSource)
 		if err != nil {
 			log.Fatal().Err(err).Msg("unable to open pcap")
+		}
+		if c.BPF != "" {
+			err = handle.SetBPFFilter(c.BPF)
+			if err != nil {
+				log.Fatal().Err(err).Msg("unable to set bpf filter")
+			}
 		}
 		log.Info().Str("packet_source", source).Str("pcap_path", c.CapSource).Msg("handle created")
 	case INTERFACE:

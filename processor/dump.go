@@ -11,9 +11,10 @@ import (
 
 type Dumper struct {
 	BaseSubscriber
-	file   *os.File
-	writer *bufio.Writer
-	topics []events.Topic
+	console bool
+	file    *os.File
+	writer  *bufio.Writer
+	topics  []events.Topic
 }
 
 func (d *Dumper) Teardown() {
@@ -34,12 +35,13 @@ type DumpItem struct {
 	Event interface{}
 }
 
-func NewDumper(path string, topics []events.Topic) *Dumper {
+func NewDumper(path string, topics []events.Topic, toConsole bool) *Dumper {
 	var d Dumper
 	//d.file = createFile(viper.GetString("processors.dump.path"))
 	d.file = createFile(path)
 	d.writer = bufio.NewWriter(d.file)
 	d.topics = topics
+	d.console = toConsole
 	return &d
 }
 
@@ -57,6 +59,9 @@ func (d *Dumper) Subs() []events.Topic {
 }
 
 func (d *Dumper) EventHandler(topic events.Topic, event interface{}) {
+	if d.console {
+		log.Info().Interface("event", event).Msg(string(topic))
+	}
 	b, err := json.Marshal(DumpItem{
 		//Timestamp: time.Now().Format(time.RFC3339Nano),
 		Topic: string(topic),

@@ -12,23 +12,30 @@ packets:
       - "192.168.0.0/16"
 
 processors:
-  dump:
-    enabled: true
-    path: "./files/dumps/dump.json.log"
-    topics:
-      - "packet_parser.metadata"
-      - "classification"
-      - "flow.attach_telemetry"
-      - "telemetry.tcp_retransmit_simple"
-      - "telemetry.flowpulse"
-      - "telemetry.tcp_rtt"
-
   header_classifier:
     classes:
+      all_https:
+        client_ip: '*'
+        server_ip: '*'
+        client_port: '*'
+        server_port: '443'
+        protocol: '6'
+      amazon:
+        client_ip: '*'
+        server_ip: '99.86.209.19/32'
+        client_port: '*' # syntax: 'n': p == n, 'm-n': m<=p<=n
+        server_port: '443'
+        protocol: '6'
+      netflixnonsni:
+        client_ip: '*'
+        server_ip: '103.70.73.197/30'
+        client_port: '*' # syntax: 'n': p == n, 'm-n': m<=p<=n
+        server_port: '*'
+        protocol: '6'
       amazonprime:
         client_ip: '131.236.139.10/32'
         server_ip: '117.121.253.125/32'
-        client_port: '*' # syntax: 'n': p == n, 'm-n': m<=p<=n
+        client_port: '51137' # syntax: 'n': p == n, 'm-n': m<=p<=n
         server_port: '443'
         protocol: '6'
       zoomudp:
@@ -39,20 +46,11 @@ processors:
         protocol: '17'
       zoomtcp:
         client_ip: '*'
-        server_ip: '1.1.1.1'
+        server_ip: '1.1.1.1/32'
         client_port: '*' # syntax: 'n': p == n, 'm-n': m<=p<=n
         server_port: '443'
         protocol: '6'
 
-  telemetry_manager:
-    enabled: true
-    classes:
-      https: ['tcp_rtt', 'flowpulse', 'tcp_retransmit']
-
-
-telemetry:
-  flowpulse:
-    interval_ms: 1000
-  tcp_retransmit:
-    interval_ms: 1000
-
+sniclassifier:
+  classes:
+    netflix: '.*\.nflxvideo\.net'

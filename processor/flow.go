@@ -74,7 +74,7 @@ func (f *FlowProcessor) EventHandler(topic events.Topic, event interface{}) {
 			_, exists := entry.TFS[tf.Name()]
 			if exists {
 				log.Warn().Str("header", fmt.Sprint(at.Header)).
-					Str("telemetry", fmt.Sprint(at.TelemetryFunctions)).
+					Str("telemetry", fmt.Sprint(tf.Name())).
 					Msg("duplicate telemetry!")
 				continue
 			}
