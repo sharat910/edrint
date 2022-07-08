@@ -97,7 +97,7 @@ func PacketParser(c ParserConfig, pf events.PubFunc) error {
 			p.Payload = appLayer.LayerContents()
 			//p.Payload = append(p.Payload, appLayer.Payload()...)
 			if len(appLayer.Payload()) != 0 && len(appLayer.Payload()) != len(appLayer.LayerContents()) {
-				log.Warn().
+				log.Trace().
 					Int("layer_content_len", len(appLayer.LayerContents())).
 					Int("layer_payload_len", len(appLayer.Payload())).
 					Msg("app layer len difference!")

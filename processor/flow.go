@@ -162,7 +162,7 @@ func (f *FlowProcessor) Insert(p common.Packet) {
 
 	entry.UpdateOnPacket(p)
 
-	log.Debug().Time("start", p.Timestamp).Str("ft", key.String()).Msg("new flow")
+	log.Trace().Time("start", p.Timestamp).Str("ft", key.String()).Msg("new flow")
 }
 
 // MakeEntrylatest sets appropriate pointers to make the inserted entry to latest

@@ -1,0 +1,27 @@
+packets:
+  capture_mode: "pcap" # interface or pcap
+  direction:
+    mode: "ip" # mac or ip
+    client_macs:
+      - ""
+    client_ips:
+      - "131.236.0.0/16"
+      - "129.94.0.0/16"
+      - "149.174.0.0/16"
+      - "10.0.0.0/8"
+      - "192.168.0.0/16"
+
+processors:
+  header_classifier:
+    classes:
+      all_https:
+        client_ip: '*'
+        server_ip: '*'
+        client_port: '*'
+        server_port: '443'
+        protocol: '6'
+
+sniclassifier:
+  classes:
+    netflix: '.*\.nflxvideo\.net'
+    youtube: '.*\.googlevideo\.com'

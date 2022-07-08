@@ -1,0 +1,124 @@
+{"level":"info","Level":"debug","time":"2022-06-01 17:59:10.334702","message":"Logging setup done"}
+{"level":"debug","proc":"flow","timeout_min":2,"time":"2022-06-01 17:59:10.334934","message":"config"}
+{"level":"info","proc":"flow","topic":"packet","time":"2022-06-01 17:59:10.335868","message":"subscription"}
+{"level":"info","proc":"flow","topic":"flow.attach_telemetry","time":"2022-06-01 17:59:10.335953","message":"subscription"}
+{"level":"info","proc":"sni","topic":"packet","time":"2022-06-01 17:59:10.336008","message":"subscription"}
+{"level":"info","proc":"sni_classifier","topic":"protocol.sni","time":"2022-06-01 17:59:10.336046","message":"subscription"}
+{"level":"debug","proc":"telemetry_manager","classes":"map[youtube:[0x4282c60]]","time":"2022-06-01 17:59:10.336167","message":"Init"}
+{"level":"info","proc":"telemetry_manager","topic":"classification","time":"2022-06-01 17:59:10.336236","message":"subscription"}
+{"level":"info","proc":"dump","topic":"telemetry.http_chunk","time":"2022-06-01 17:59:10.336278","message":"subscription"}
+{"level":"info","proc":"dump","topic":"classification","time":"2022-06-01 17:59:10.336313","message":"subscription"}
+{"level":"info","packet_source":"","pcap_path":"/Users/sharat/pcaps/youtube_firefox.pcapng","time":"2022-06-01 17:59:10.336918","message":"handle created"}
+{"level":"info","time":"2022-06-01 17:59:10.337039","message":"packet processor started"}
+{"level":"debug","sni":"spclient.wg.spotify.com","flow_tuple":"129.94.204.155:51352 =17= 35.186.224.25:443","time":"2022-06-01 17:59:10.337607","message":"sni"}
+{"level":"debug","sni":"eu-v20.events.data.microsoft.com","flow_tuple":"129.94.204.155:62040 =6= 13.69.239.73:443","time":"2022-06-01 17:59:10.338227","message":"sni"}
+{"level":"debug","sni":"substrate.office.com","flow_tuple":"129.94.204.155:54591 =6= 40.100.145.146:443","time":"2022-06-01 17:59:10.339151","message":"sni"}
+{"level":"debug","sni":"substrate.office.com","flow_tuple":"129.94.204.155:54592 =6= 40.100.145.146:443","time":"2022-06-01 17:59:10.339971","message":"sni"}
+{"level":"debug","sni":"substrate.office.com","flow_tuple":"129.94.204.155:54593 =6= 40.100.145.146:443","time":"2022-06-01 17:59:10.340068","message":"sni"}
+{"level":"debug","sni":"incoming.telemetry.mozilla.org","flow_tuple":"129.94.204.155:62041 =6= 34.120.208.123:443","time":"2022-06-01 17:59:10.340919","message":"sni"}
+{"level":"debug","sni":"winatp-gw-weu.microsoft.com","flow_tuple":"129.94.204.155:62042 =6= 51.124.32.246:443","time":"2022-06-01 17:59:10.341614","message":"sni"}
+{"level":"debug","sni":"mobile.pipe.aria.microsoft.com","flow_tuple":"129.94.204.155:54594 =6= 52.168.117.169:443","time":"2022-06-01 17:59:10.342280","message":"sni"}
+{"level":"debug","sni":"profile.accounts.firefox.com","flow_tuple":"129.94.204.155:62043 =6= 54.201.62.176:443","time":"2022-06-01 17:59:10.342601","message":"sni"}
+{"level":"debug","sni":"www.youtube.com","flow_tuple":"129.94.204.155:62044 =6= 172.217.167.78:443","time":"2022-06-01 17:59:10.343584","message":"sni"}
+{"level":"debug","sni":"i.ytimg.com","flow_tuple":"129.94.204.155:62045 =6= 142.250.204.22:443","time":"2022-06-01 17:59:10.344612","message":"sni"}
+{"level":"debug","sni":"fonts.googleapis.com","flow_tuple":"129.94.204.155:62046 =6= 172.217.167.106:443","time":"2022-06-01 17:59:10.351819","message":"sni"}
+{"level":"debug","sni":"i.ytimg.com","flow_tuple":"129.94.204.155:64636 =17= 142.250.204.22:443","time":"2022-06-01 17:59:10.354962","message":"sni"}
+{"level":"debug","sni":"fonts.googleapis.com","flow_tuple":"129.94.204.155:54789 =17= 172.217.167.106:443","time":"2022-06-01 17:59:10.356357","message":"sni"}
+{"level":"debug","sni":"fonts.gstatic.com","flow_tuple":"129.94.204.155:62047 =6= 142.250.66.227:443","time":"2022-06-01 17:59:10.356699","message":"sni"}
+{"level":"debug","sni":"accounts.google.com","flow_tuple":"129.94.204.155:62048 =6= 142.250.67.13:443","time":"2022-06-01 17:59:10.356922","message":"sni"}
+{"level":"debug","sni":"accounts.google.com","flow_tuple":"129.94.204.155:57417 =17= 142.250.67.13:443","time":"2022-06-01 17:59:10.358091","message":"sni"}
+{"level":"debug","sni":"www.gstatic.com","flow_tuple":"129.94.204.155:62049 =6= 142.250.67.3:443","time":"2022-06-01 17:59:10.358969","message":"sni"}
+{"level":"debug","sni":"www.gstatic.com","flow_tuple":"129.94.204.155:62050 =6= 142.250.67.3:443","time":"2022-06-01 17:59:10.359987","message":"sni"}
+{"level":"debug","sni":"yt3.ggpht.com","flow_tuple":"129.94.204.155:62051 =6= 142.250.204.1:443","time":"2022-06-01 17:59:10.360527","message":"sni"}
+{"level":"debug","sni":"yt3.ggpht.com","flow_tuple":"129.94.204.155:62053 =6= 142.250.204.1:443","time":"2022-06-01 17:59:10.360661","message":"sni"}
+{"level":"debug","sni":"yt3.ggpht.com","flow_tuple":"129.94.204.155:62052 =6= 142.250.204.1:443","time":"2022-06-01 17:59:10.360771","message":"sni"}
+{"level":"debug","sni":"yt3.ggpht.com","flow_tuple":"129.94.204.155:62054 =6= 142.250.204.1:443","time":"2022-06-01 17:59:10.360876","message":"sni"}
+{"level":"debug","sni":"yt3.ggpht.com","flow_tuple":"129.94.204.155:62055 =6= 142.250.204.1:443","time":"2022-06-01 17:59:10.360979","message":"sni"}
+{"level":"debug","sni":"yt3.ggpht.com","flow_tuple":"129.94.204.155:62056 =6= 142.250.204.1:443","time":"2022-06-01 17:59:10.361050","message":"sni"}
+{"level":"debug","sni":"safebrowsing.googleapis.com","flow_tuple":"129.94.204.155:62057 =6= 142.250.67.10:443","time":"2022-06-01 17:59:10.363869","message":"sni"}
+{"level":"debug","sni":"yt3.ggpht.com","flow_tuple":"129.94.204.155:56004 =17= 142.250.204.1:443","time":"2022-06-01 17:59:10.364862","message":"sni"}
+{"level":"debug","sni":"www.youtube.com","flow_tuple":"129.94.204.155:62058 =6= 172.217.167.78:443","time":"2022-06-01 17:59:10.365508","message":"sni"}
+{"level":"debug","sni":"gae2-spclient.spotify.com","flow_tuple":"129.94.204.155:53052 =17= 35.186.224.13:443","time":"2022-06-01 17:59:10.367498","message":"sni"}
+{"level":"debug","sni":"gae2-spclient.spotify.com","flow_tuple":"129.94.204.155:62059 =6= 35.186.224.13:443","time":"2022-06-01 17:59:10.367634","message":"sni"}
+{"level":"debug","sni":"jnn-pa.googleapis.com","flow_tuple":"129.94.204.155:62060 =6= 142.250.71.74:443","time":"2022-06-01 17:59:10.367881","message":"sni"}
+{"level":"debug","sni":"jnn-pa.googleapis.com","flow_tuple":"129.94.204.155:57957 =17= 142.250.71.74:443","time":"2022-06-01 17:59:10.368141","message":"sni"}
+{"level":"debug","sni":"rr1---sn-55goxu-ntqe.googlevideo.com","flow_tuple":"129.94.204.155:62061 =6= 203.5.76.204:443","time":"2022-06-01 17:59:10.368806","message":"sni"}
+{"level":"debug","sni":"rr1---sn-55goxu-ntqe.googlevideo.com","flow_tuple":"129.94.204.155:52049 =17= 203.5.76.204:443","time":"2022-06-01 17:59:10.371269","message":"sni"}
+{"level":"info","ft":"203.5.76.204:443 =17= 129.94.204.155:52049","chunk":"Req: 1015 ChunkSize: 0 Start: 0001-01-01 00:00:00 +0000 UTC Dur: 0s","time":"2022-06-01 17:59:10.371549","message":"chunk"}
+{"level":"debug","sni":"jnn-pa.googleapis.com","flow_tuple":"129.94.204.155:59454 =17= 142.250.71.74:443","time":"2022-06-01 17:59:10.372453","message":"sni"}
+{"level":"info","ft":"203.5.76.204:443 =17= 129.94.204.155:52049","chunk":"Req: 938 ChunkSize: 238881 Start: 2022-06-01 17:12:41.331655 +1000 AEST Dur: 56.339ms","time":"2022-06-01 17:59:10.373194","message":"chunk"}
+{"level":"info","ft":"203.5.76.204:443 =17= 129.94.204.155:52049","chunk":"Req: 1022 ChunkSize: 170753 Start: 2022-06-01 17:12:41.403664 +1000 AEST Dur: 19.401ms","time":"2022-06-01 17:59:10.373893","message":"chunk"}
+{"level":"info","ft":"203.5.76.204:443 =17= 129.94.204.155:52049","chunk":"Req: 944 ChunkSize: 60840 Start: 2022-06-01 17:12:41.432343 +1000 AEST Dur: 10.391ms","time":"2022-06-01 17:59:10.374247","message":"chunk"}
+{"level":"info","ft":"203.5.76.204:443 =17= 129.94.204.155:52049","chunk":"Req: 1022 ChunkSize: 446177 Start: 2022-06-01 17:12:41.451368 +1000 AEST Dur: 67.255ms","time":"2022-06-01 17:59:10.376143","message":"chunk"}
+{"level":"debug","sni":"www.google.com","flow_tuple":"129.94.204.155:62063 =6= 142.250.76.100:443","time":"2022-06-01 17:59:10.376649","message":"sni"}
+{"level":"warn","chunk_idx":5,"last":"2022-06-01 17:12:41.532996","delta":"10.227483s","pLen":32,"last_chunk":"Req: 945 ChunkSize: 30542 Start: 2022-06-01 17:12:41.527377 +1000 AEST Dur: 5.619ms","ft":"203.5.76.204:443 =17= 129.94.204.155:52049","time":"2022-06-01 17:59:10.379499","message":"download packet after"}
+{"level":"warn","chunk_idx":5,"last":"2022-06-01 17:12:51.763988","delta":"301.607ms","pLen":31,"last_chunk":"Req: 945 ChunkSize: 30632 Start: 2022-06-01 17:12:41.527377 +1000 AEST Dur: 10.236611s","ft":"203.5.76.204:443 =17= 129.94.204.155:52049","time":"2022-06-01 17:59:10.381474","message":"download packet after"}
+{"level":"info","ft":"203.5.76.204:443 =17= 129.94.204.155:52049","chunk":"Req: 945 ChunkSize: 30721 Start: 2022-06-01 17:12:41.527377 +1000 AEST Dur: 10.54081s","time":"2022-06-01 17:59:10.382027","message":"chunk"}
+{"level":"info","ft":"203.5.76.204:443 =17= 129.94.204.155:52049","chunk":"Req: 1230 ChunkSize: 0 Start: 0001-01-01 00:00:00 +0000 UTC Dur: 0s","time":"2022-06-01 17:59:10.382242","message":"chunk"}
+{"level":"info","ft":"203.5.76.204:443 =17= 129.94.204.155:52049","chunk":"Req: 1128 ChunkSize: 716882 Start: 2022-06-01 17:12:52.12707 +1000 AEST Dur: 129.189ms","time":"2022-06-01 17:59:10.387098","message":"chunk"}
+{"level":"info","ft":"203.5.76.204:443 =17= 129.94.204.155:52049","chunk":"Req: 1222 ChunkSize: 645722 Start: 2022-06-01 17:12:52.347927 +1000 AEST Dur: 76.5ms","time":"2022-06-01 17:59:10.389310","message":"chunk"}
+{"level":"info","ft":"203.5.76.204:443 =17= 129.94.204.155:52049","chunk":"Req: 1135 ChunkSize: 78186 Start: 2022-06-01 17:12:52.43532 +1000 AEST Dur: 8.995ms","time":"2022-06-01 17:59:10.389880","message":"chunk"}
+{"level":"info","ft":"203.5.76.204:443 =17= 129.94.204.155:52049","chunk":"Req: 1223 ChunkSize: 1653033 Start: 2022-06-01 17:12:52.452691 +1000 AEST Dur: 207.569ms","time":"2022-06-01 17:59:10.395597","message":"chunk"}
+{"level":"info","ft":"203.5.76.204:443 =17= 129.94.204.155:52049","chunk":"Req: 1136 ChunkSize: 129000 Start: 2022-06-01 17:12:52.670053 +1000 AEST Dur: 19.302ms","time":"2022-06-01 17:59:10.396152","message":"chunk"}
+{"level":"info","ft":"203.5.76.204:443 =17= 129.94.204.155:52049","chunk":"Req: 1225 ChunkSize: 1661820 Start: 2022-06-01 17:12:52.691923 +1000 AEST Dur: 224.367ms","time":"2022-06-01 17:59:10.401198","message":"chunk"}
+{"level":"info","ft":"203.5.76.204:443 =17= 129.94.204.155:52049","chunk":"Req: 1226 ChunkSize: 1526289 Start: 2022-06-01 17:12:54.449429 +1000 AEST Dur: 200.735ms","time":"2022-06-01 17:59:10.404912","message":"chunk"}
+{"level":"info","ft":"203.5.76.204:443 =17= 129.94.204.155:52049","chunk":"Req: 1137 ChunkSize: 299850 Start: 2022-06-01 17:12:55.660489 +1000 AEST Dur: 45.292ms","time":"2022-06-01 17:59:10.406176","message":"chunk"}
+{"level":"debug","sni":"outlook.office365.com","flow_tuple":"129.94.204.155:54595 =6= 40.100.144.242:443","time":"2022-06-01 17:59:10.413393","message":"sni"}
+{"level":"info","ft":"203.5.76.204:443 =17= 129.94.204.155:52049","chunk":"Req: 1226 ChunkSize: 2141550 Start: 2022-06-01 17:12:58.94803 +1000 AEST Dur: 326.287ms","time":"2022-06-01 17:59:10.414178","message":"chunk"}
+{"level":"debug","sni":"winatp-gw-weu.microsoft.com","flow_tuple":"129.94.204.155:62067 =6= 51.124.32.246:443","time":"2022-06-01 17:59:10.419501","message":"sni"}
+{"level":"info","ft":"203.5.76.204:443 =17= 129.94.204.155:52049","chunk":"Req: 1225 ChunkSize: 1782086 Start: 2022-06-01 17:13:04.584172 +1000 AEST Dur: 273.821ms","time":"2022-06-01 17:59:10.420696","message":"chunk"}
+{"level":"info","ft":"203.5.76.204:443 =17= 129.94.204.155:52049","chunk":"Req: 1137 ChunkSize: 340357 Start: 2022-06-01 17:13:04.870631 +1000 AEST Dur: 45.917ms","time":"2022-06-01 17:59:10.421910","message":"chunk"}
+{"level":"debug","sni":"play.google.com","flow_tuple":"129.94.204.155:62068 =6= 142.250.67.14:443","time":"2022-06-01 17:59:10.428455","message":"sni"}
+{"level":"info","ft":"203.5.76.204:443 =17= 129.94.204.155:52049","chunk":"Req: 1226 ChunkSize: 2142456 Start: 2022-06-01 17:13:08.045417 +1000 AEST Dur: 348.88ms","time":"2022-06-01 17:59:10.428705","message":"chunk"}
+{"level":"info","ft":"203.5.76.204:443 =17= 129.94.204.155:52049","chunk":"Req: 1227 ChunkSize: 2141557 Start: 2022-06-01 17:13:11.42415 +1000 AEST Dur: 292.164ms","time":"2022-06-01 17:59:10.439727","message":"chunk"}
+{"level":"info","ft":"203.5.76.204:443 =17= 129.94.204.155:52049","chunk":"Req: 1227 ChunkSize: 1813595 Start: 2022-06-01 17:13:14.837674 +1000 AEST Dur: 284.202ms","time":"2022-06-01 17:59:10.447228","message":"chunk"}
+{"level":"debug","sni":"contile.services.mozilla.com","flow_tuple":"129.94.204.155:62069 =6= 34.117.237.239:443","time":"2022-06-01 17:59:10.449931","message":"sni"}
+{"level":"info","ft":"203.5.76.204:443 =17= 129.94.204.155:52049","chunk":"Req: 1137 ChunkSize: 489434 Start: 2022-06-01 17:13:15.126285 +1000 AEST Dur: 79.67ms","time":"2022-06-01 17:59:10.450219","message":"chunk"}
+{"level":"info","ft":"203.5.76.204:443 =17= 129.94.204.155:52049","chunk":"Req: 1227 ChunkSize: 1500179 Start: 2022-06-01 17:13:18.259116 +1000 AEST Dur: 254.642ms","time":"2022-06-01 17:59:10.454506","message":"chunk"}
+{"level":"debug","sni":"clients6.google.com","flow_tuple":"129.94.204.155:62070 =6= 172.217.24.46:443","time":"2022-06-01 17:59:10.459415","message":"sni"}
+{"level":"debug","sni":"clients6.google.com","flow_tuple":"129.94.204.155:62071 =6= 172.217.24.46:443","time":"2022-06-01 17:59:10.459525","message":"sni"}
+{"level":"info","ft":"203.5.76.204:443 =17= 129.94.204.155:52049","chunk":"Req: 1227 ChunkSize: 1750228 Start: 2022-06-01 17:13:20.524982 +1000 AEST Dur: 260.545ms","time":"2022-06-01 17:59:10.459983","message":"chunk"}
+{"level":"debug","sni":"people-pa.clients6.google.com","flow_tuple":"129.94.204.155:62072 =6= 172.217.24.42:443","time":"2022-06-01 17:59:10.460764","message":"sni"}
+{"level":"debug","sni":"people-pa.clients6.google.com","flow_tuple":"129.94.204.155:62073 =6= 172.217.24.42:443","time":"2022-06-01 17:59:10.460853","message":"sni"}
+{"level":"debug","sni":"mobile.pipe.aria.microsoft.com","flow_tuple":"129.94.204.155:54596 =6= 52.168.117.169:443","time":"2022-06-01 17:59:10.464974","message":"sni"}
+{"level":"info","ft":"203.5.76.204:443 =17= 129.94.204.155:52049","chunk":"Req: 1227 ChunkSize: 1780544 Start: 2022-06-01 17:13:22.75036 +1000 AEST Dur: 332.595ms","time":"2022-06-01 17:59:10.465150","message":"chunk"}
+{"level":"info","ft":"203.5.76.204:443 =17= 129.94.204.155:52049","chunk":"Req: 1227 ChunkSize: 1486523 Start: 2022-06-01 17:13:26.163082 +1000 AEST Dur: 266.315ms","time":"2022-06-01 17:59:10.468793","message":"chunk"}
+{"level":"debug","sni":"safebrowsing.googleapis.com","flow_tuple":"129.94.204.155:62079 =6= 142.250.67.10:443","time":"2022-06-01 17:59:10.475358","message":"sni"}
+{"level":"info","ft":"203.5.76.204:443 =17= 129.94.204.155:52049","chunk":"Req: 1227 ChunkSize: 1730448 Start: 2022-06-01 17:13:28.467311 +1000 AEST Dur: 286.74ms","time":"2022-06-01 17:59:10.475519","message":"chunk"}
+{"level":"info","ft":"203.5.76.204:443 =17= 129.94.204.155:52049","chunk":"Req: 1138 ChunkSize: 452216 Start: 2022-06-01 17:13:31.202435 +1000 AEST Dur: 69.773ms","time":"2022-06-01 17:59:10.476411","message":"chunk"}
+{"level":"debug","sni":"gateway.icloud.com","flow_tuple":"129.94.204.155:54597 =6= 17.248.252.73:443","time":"2022-06-01 17:59:10.482274","message":"sni"}
+{"level":"info","ft":"203.5.76.204:443 =17= 129.94.204.155:52049","chunk":"Req: 1227 ChunkSize: 2141512 Start: 2022-06-01 17:13:31.278669 +1000 AEST Dur: 375.394ms","time":"2022-06-01 17:59:10.482675","message":"chunk"}
+{"level":"debug","sni":"winatp-gw-weu.microsoft.com","flow_tuple":"129.94.204.155:62080 =6= 51.124.32.246:443","time":"2022-06-01 17:59:10.488291","message":"sni"}
+{"level":"info","ft":"203.5.76.204:443 =17= 129.94.204.155:52049","chunk":"Req: 1227 ChunkSize: 2141557 Start: 2022-06-01 17:13:34.432728 +1000 AEST Dur: 343.146ms","time":"2022-06-01 17:59:10.488848","message":"chunk"}
+{"level":"debug","sni":"i.ytimg.com","flow_tuple":"129.94.204.155:49612 =17= 142.250.204.22:443","time":"2022-06-01 17:59:10.494803","message":"sni"}
+{"level":"debug","sni":"i.ytimg.com","flow_tuple":"129.94.204.155:49612 =17= 142.250.204.22:443","time":"2022-06-01 17:59:10.494979","message":"sni"}
+{"level":"info","ft":"203.5.76.204:443 =17= 129.94.204.155:52049","chunk":"Req: 1227 ChunkSize: 2141555 Start: 2022-06-01 17:13:38.971492 +1000 AEST Dur: 322.055ms","time":"2022-06-01 17:59:10.496050","message":"chunk"}
+{"level":"info","ft":"203.5.76.204:443 =17= 129.94.204.155:52049","chunk":"Req: 1211 ChunkSize: 0 Start: 0001-01-01 00:00:00 +0000 UTC Dur: 0s","time":"2022-06-01 17:59:10.496101","message":"chunk"}
+{"level":"info","ft":"203.5.76.204:443 =17= 129.94.204.155:52049","chunk":"Req: 1133 ChunkSize: 2699 Start: 2022-06-01 17:13:43.920476 +1000 AEST Dur: 64.666ms","time":"2022-06-01 17:59:10.496190","message":"chunk"}
+{"level":"info","ft":"203.5.76.204:443 =17= 129.94.204.155:52049","chunk":"Req: 1212 ChunkSize: 41791 Start: 2022-06-01 17:13:44.003574 +1000 AEST Dur: 66.065ms","time":"2022-06-01 17:59:10.496371","message":"chunk"}
+{"level":"info","ft":"203.5.76.204:443 =17= 129.94.204.155:52049","chunk":"Req: 1213 ChunkSize: 59152 Start: 2022-06-01 17:13:44.079204 +1000 AEST Dur: 66.917ms","time":"2022-06-01 17:59:10.496627","message":"chunk"}
+{"level":"info","ft":"203.5.76.204:443 =17= 129.94.204.155:52049","chunk":"Req: 1133 ChunkSize: 67049 Start: 2022-06-01 17:13:44.153388 +1000 AEST Dur: 9.792ms","time":"2022-06-01 17:59:10.496850","message":"chunk"}
+{"level":"debug","sni":"rum-http-intake.logs.datadoghq.com","flow_tuple":"129.94.204.155:62081 =6= 3.233.149.200:443","time":"2022-06-01 17:59:10.497152","message":"sni"}
+{"level":"info","ft":"203.5.76.204:443 =17= 129.94.204.155:52049","chunk":"Req: 1136 ChunkSize: 67009 Start: 2022-06-01 17:13:44.171531 +1000 AEST Dur: 7.059ms","time":"2022-06-01 17:59:10.497211","message":"chunk"}
+{"level":"info","ft":"203.5.76.204:443 =17= 129.94.204.155:52049","chunk":"Req: 1214 ChunkSize: 54426 Start: 2022-06-01 17:13:44.18676 +1000 AEST Dur: 69.897ms","time":"2022-06-01 17:59:10.497408","message":"chunk"}
+{"level":"info","ft":"203.5.76.204:443 =17= 129.94.204.155:52049","chunk":"Req: 1215 ChunkSize: 107058 Start: 2022-06-01 17:13:44.271107 +1000 AEST Dur: 74.249ms","time":"2022-06-01 17:59:10.497744","message":"chunk"}
+{"level":"info","ft":"203.5.76.204:443 =17= 129.94.204.155:52049","chunk":"Req: 1136 ChunkSize: 119574 Start: 2022-06-01 17:13:44.355098 +1000 AEST Dur: 17.496ms","time":"2022-06-01 17:59:10.498201","message":"chunk"}
+{"level":"info","ft":"203.5.76.204:443 =17= 129.94.204.155:52049","chunk":"Req: 1214 ChunkSize: 264818 Start: 2022-06-01 17:13:44.38068 +1000 AEST Dur: 96.646ms","time":"2022-06-01 17:59:10.499093","message":"chunk"}
+{"level":"info","ft":"203.5.76.204:443 =17= 129.94.204.155:52049","chunk":"Req: 1136 ChunkSize: 237762 Start: 2022-06-01 17:13:44.487652 +1000 AEST Dur: 37.742ms","time":"2022-06-01 17:59:10.499604","message":"chunk"}
+{"level":"info","ft":"203.5.76.204:443 =17= 129.94.204.155:52049","chunk":"Req: 1215 ChunkSize: 366107 Start: 2022-06-01 17:13:44.531607 +1000 AEST Dur: 121.9ms","time":"2022-06-01 17:59:10.500367","message":"chunk"}
+{"level":"info","ft":"203.5.76.204:443 =17= 129.94.204.155:52049","chunk":"Req: 1137 ChunkSize: 236315 Start: 2022-06-01 17:13:44.660614 +1000 AEST Dur: 41.237ms","time":"2022-06-01 17:59:10.502012","message":"chunk"}
+{"level":"info","ft":"203.5.76.204:443 =17= 129.94.204.155:52049","chunk":"Req: 1138 ChunkSize: 250046 Start: 2022-06-01 17:13:44.709098 +1000 AEST Dur: 41.257ms","time":"2022-06-01 17:59:10.502842","message":"chunk"}
+{"level":"info","ft":"203.5.76.204:443 =17= 129.94.204.155:52049","chunk":"Req: 1216 ChunkSize: 363518 Start: 2022-06-01 17:13:44.762193 +1000 AEST Dur: 110.385ms","time":"2022-06-01 17:59:10.503982","message":"chunk"}
+{"level":"debug","sni":"spclient.wg.spotify.com","flow_tuple":"129.94.204.155:49226 =17= 35.186.224.25:443","time":"2022-06-01 17:59:10.504867","message":"sni"}
+{"level":"debug","sni":"docs.google.com","flow_tuple":"129.94.204.155:62082 =6= 142.250.204.14:443","time":"2022-06-01 17:59:10.505062","message":"sni"}
+{"level":"info","ft":"203.5.76.204:443 =17= 129.94.204.155:52049","chunk":"Req: 1138 ChunkSize: 249626 Start: 2022-06-01 17:13:44.878847 +1000 AEST Dur: 70.112ms","time":"2022-06-01 17:59:10.505929","message":"chunk"}
+{"level":"debug","sni":"bolt.dropbox.com","flow_tuple":"129.94.204.155:62083 =6= 162.125.35.134:443","time":"2022-06-01 17:59:10.506937","message":"sni"}
+{"level":"debug","sni":"winatp-gw-weu.microsoft.com","flow_tuple":"129.94.204.155:62086 =6= 51.124.32.246:443","time":"2022-06-01 17:59:10.509109","message":"sni"}
+{"level":"info","ft":"203.5.76.204:443 =17= 129.94.204.155:52049","chunk":"Req: 1216 ChunkSize: 350450 Start: 2022-06-01 17:13:52.157187 +1000 AEST Dur: 120.441ms","time":"2022-06-01 17:59:10.510629","message":"chunk"}
+{"level":"debug","sni":"www.youtube.com","flow_tuple":"129.94.204.155:62087 =6= 172.217.167.78:443","time":"2022-06-01 17:59:10.511596","message":"sni"}
+{"level":"debug","sni":"p72-fmfmobile.icloud.com","flow_tuple":"129.94.204.155:54598 =6= 17.248.252.102:443","time":"2022-06-01 17:59:10.511924","message":"sni"}
+{"level":"info","packet_count":53554,"time":"2022-06-01 17:59:10.513040","message":"packet processing completed"}
+{"level":"info","ft":"203.5.76.204:443 =17= 129.94.204.155:52049","num_chunks":49,"time":"2022-06-01 17:59:10.513238","message":"chunks in a flow"}
+{"level":"info","ft":"203.5.76.204:443 =6= 129.94.204.155:62061","num_chunks":0,"time":"2022-06-01 17:59:10.513606","message":"chunks in a flow"}
+{"level":"info","proc":"flow","entry_count":0,"time":"2022-06-01 17:59:10.513672","message":"teardown"}
+{"level":"info","time":"2022-06-01 17:59:10.513983","message":"dumper: flushed files"}

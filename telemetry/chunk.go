@@ -120,14 +120,14 @@ func (h *HTTPChunkDetector) OnFlowPacket(p common.Packet) {
 			if len(h.Chunks) > 0 {
 				lastIdx := len(h.Chunks) - 1
 				//h.ComputeIPTStats(lastIdx)
-				log.Debug().Str("ft", h.GetHeader().String()).Str("chunk", h.Chunks[lastIdx].String()).Msg("chunk")
+				log.Info().Str("ft", h.GetHeader().String()).Str("chunk", h.Chunks[lastIdx].String()).Msg("chunk")
 			}
 			h.Chunks = append(h.Chunks, HTTPChunk{
 				ReqLen:  pLen,
 				Request: p.Timestamp,
 			})
 		} else {
-			log.Debug().Str("ft", h.header.String()).Int("req_thresh", h.ReqThreshold).
+			log.Trace().Str("ft", h.header.String()).Int("req_thresh", h.ReqThreshold).
 				Int("pLen", pLen).Msg("upload packet < h.ReqThreshold")
 		}
 	} else {
